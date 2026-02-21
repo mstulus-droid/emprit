@@ -1177,8 +1177,7 @@
                 if (frames % 200 === 0) clouds.push(new Cloud());
                 clouds = clouds.filter(c => c.x > -100);
 
-                spawnTimer++;
-                // FIX: Spawn rate lebih konsisten, tidak terlalu cepat di awal
+                spawnTimer += (bird.powerups.slowmo ? 0.4 : 1);
                 const spawnRate = Math.max(90, 140 - (difficulty * 2));
                 
                 if (spawnTimer > spawnRate) { 
