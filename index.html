@@ -23,6 +23,7 @@
             height: 100vh; max-height: 800px; background: #fff;
             border-radius: 20px; overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: transform 0.1s;
         }
 
         @media (min-width: 450px) { #game-wrapper { height: 800px; margin: 20px; } }
@@ -39,7 +40,9 @@
         .score-box {
             background: rgba(255, 255, 255, 0.95); padding: 10px 20px; border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; min-width: 80px;
+            transform: scale(1); transition: transform 0.2s;
         }
+        .score-box.pulse { transform: scale(1.2); }
         .score-label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .score-value { font-size: 32px; font-weight: 900; color: #ff6b6b; line-height: 1; margin-top: 2px; }
 
@@ -61,17 +64,34 @@
 
         .powerup-indicator { position: absolute; left: 20px; bottom: 100px; display: flex; flex-direction: column; gap: 10px; }
         .powerup-badge { 
-            width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            font-size: 22px; background: rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            opacity: 0.3; transform: scale(0.8); transition: all 0.3s; position: relative; overflow: hidden;
+            width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; 
+            font-size: 24px; background: rgba(255,255,255,0.95); box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            opacity: 0.3; transform: scale(0.8) translateX(-20px); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative; overflow: hidden; border: 3px solid transparent;
         }
-        .powerup-badge.active { opacity: 1; transform: scale(1); animation: glow 2s infinite; }
+        .powerup-badge.active { 
+            opacity: 1; transform: scale(1) translateX(0); 
+            animation: glow 2s infinite; 
+            border-color: currentColor;
+        }
+        .powerup-timer-ring {
+            position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            border-top-color: currentColor;
+            transition: transform 0.1s linear;
+        }
         .powerup-timer-bar {
             position: absolute; bottom: 0; left: 0; height: 4px; background: currentColor;
-            transition: width 0.1s linear; width: 100%;
+            transition: width 0.1s linear; width: 100%; opacity: 0.8;
         }
-        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px currentColor; } 50% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; } }
-        .shield { color: #4299e1; } .magnet { color: #ecc94b; } .slowmo { color: #9f7aea; }
+        @keyframes glow { 
+            0%, 100% { box-shadow: 0 0 5px currentColor, inset 0 0 10px rgba(255,255,255,0.5); } 
+            50% { box-shadow: 0 0 25px currentColor, 0 0 50px currentColor, inset 0 0 15px rgba(255,255,255,0.8); } 
+        }
+        .shield { color: #4299e1; background: linear-gradient(135deg, #ebf8ff, #bee3f8); } 
+        .magnet { color: #ecc94b; background: linear-gradient(135deg, #fffff0, #fefcbf); } 
+        .slowmo { color: #9f7aea; background: linear-gradient(135deg, #faf5ff, #e9d8fd); }
 
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -81,53 +101,106 @@
         }
         .hidden { opacity: 0; pointer-events: none !important; transform: scale(1.1); }
 
-        .logo { font-size: 48px; margin-bottom: 10px; animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .logo { font-size: 56px; margin-bottom: 10px; animation: bounce 2s infinite; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
 
         h1 { font-size: 36px; font-weight: 900; color: #2d3748; margin-bottom: 10px; text-align: center; line-height: 1.2; }
         .subtitle { color: #718096; font-size: 16px; margin-bottom: 30px; text-align: center; line-height: 1.5; }
 
         .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; margin-bottom: 30px; }
-        .stat-card { background: #f7fafc; border-radius: 15px; padding: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; }
-        .stat-icon { font-size: 24px; margin-bottom: 5px; }
-        .stat-value { font-size: 20px; font-weight: 900; color: #2d3748; }
-        .stat-label { font-size: 11px; color: #a0aec0; margin-top: 2px; }
+        .stat-card { 
+            background: linear-gradient(135deg, #f7fafc, #edf2f7); border-radius: 15px; padding: 15px; 
+            text-align: center; border: 2px solid transparent; transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .stat-icon { font-size: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .stat-value { font-size: 24px; font-weight: 900; color: #2d3748; }
+        .stat-label { font-size: 11px; color: #a0aec0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;
-            padding: 18px 50px; font-size: 20px; font-weight: 900; border-radius: 30px; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); transition: all 0.3s; font-family: inherit; position: relative; overflow: hidden;
+            padding: 20px 60px; font-size: 22px; font-weight: 900; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); transition: all 0.3s; font-family: inherit; 
+            position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5); }
+        .btn-primary::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .btn-primary:hover::before { left: 100%; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5); }
         .btn-primary:active { transform: translateY(0); }
 
-        .btn-secondary { background: white; color: #667eea; border: 3px solid #667eea; padding: 15px 40px; font-size: 18px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-family: inherit; margin-top: 15px; }
-        .btn-secondary:hover { background: #667eea; color: white; }
+        .btn-secondary { 
+            background: white; color: #667eea; border: 3px solid #667eea; padding: 15px 40px; 
+            font-size: 18px; font-weight: 700; border-radius: 30px; cursor: pointer; 
+            transition: all 0.3s; font-family: inherit; margin-top: 15px; 
+        }
+        .btn-secondary:hover { background: #667eea; color: white; transform: translateY(-2px); }
 
         .game-over-content { text-align: center; width: 100%; }
-        .crash-icon { font-size: 80px; margin-bottom: 20px; animation: shake 0.5s; }
-        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+        .crash-icon { font-size: 80px; margin-bottom: 20px; animation: crashShake 0.6s; }
+        @keyframes crashShake { 
+            0%, 100% { transform: rotate(0) scale(1); } 
+            20% { transform: rotate(-15deg) scale(1.1); } 
+            40% { transform: rotate(15deg) scale(1.1); } 
+            60% { transform: rotate(-10deg) scale(1.05); } 
+            80% { transform: rotate(10deg) scale(1.05); } 
+        }
 
-        .final-score-box { background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%); color: white; padding: 30px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3); }
-        .final-score-label { font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
-        .final-score-value { font-size: 56px; font-weight: 900; line-height: 1; }
+        .final-score-box { 
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%); color: white; 
+            padding: 30px; border-radius: 20px; margin-bottom: 25px; 
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+            transform: scale(1); animation: scorePop 0.5s ease-out;
+        }
+        @keyframes scorePop { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .final-score-label { font-size: 14px; opacity: 0.9; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .final-score-value { font-size: 64px; font-weight: 900; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
         .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; width: 100%; }
-        .detail-item { background: #f7fafc; padding: 15px; border-radius: 12px; }
-        .detail-label { font-size: 12px; color: #a0aec0; margin-bottom: 4px; }
-        .detail-value { font-size: 24px; font-weight: 900; color: #2d3748; }
+        .detail-item { 
+            background: linear-gradient(135deg, #f7fafc, #edf2f7); padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s;
+        }
+        .detail-item:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .detail-label { font-size: 12px; color: #a0aec0; margin-bottom: 4px; text-transform: uppercase; }
+        .detail-value { font-size: 28px; font-weight: 900; color: #2d3748; }
 
-        .new-record { background: linear-gradient(90deg, #ffd93d, #ff6b6b); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 900; font-size: 14px; margin-bottom: 20px; animation: pulse 1s infinite; display: none; }
+        .new-record { 
+            background: linear-gradient(90deg, #ffd93d, #ff6b6b); color: white; 
+            padding: 12px 25px; border-radius: 25px; font-weight: 900; font-size: 16px; 
+            margin-bottom: 20px; animation: recordPulse 1s infinite; display: none;
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+        }
         .new-record.show { display: inline-block; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes recordPulse { 0%, 100% { transform: scale(1); box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6); } }
 
-        .floating-text { position: absolute; font-weight: 900; font-size: 24px; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 50; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-80px) scale(1.3); } }
+        .floating-text { 
+            position: absolute; font-weight: 900; font-size: 28px; pointer-events: none; 
+            animation: floatUp 1.2s ease-out forwards; z-index: 50; 
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.5);
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
+        @keyframes floatUp { 
+            0% { opacity: 1; transform: translateY(0) scale(0.5) rotate(0deg); } 
+            20% { transform: translateY(-20px) scale(1.2) rotate(5deg); } 
+            100% { opacity: 0; transform: translateY(-100px) scale(1) rotate(0deg); } 
+        }
 
-        .shield-timer-ring {
-            position: absolute;
-            pointer-events: none;
-            z-index: 5;
+        .streak-indicator {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 48px; font-weight: 900; color: #ffd93d;
+            text-shadow: 0 0 30px rgba(255, 217, 61, 0.8), 0 4px 10px rgba(0,0,0,0.3);
+            opacity: 0; pointer-events: none; z-index: 30;
+        }
+        .streak-show { animation: streakAnim 1s ease-out forwards; }
+        @keyframes streakAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-180deg); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(10deg); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
         }
     </style>
 </head>
@@ -137,7 +210,7 @@
         
         <div class="ui-layer">
             <div class="hud">
-                <div class="score-box">
+                <div class="score-box" id="score-box">
                     <div class="score-label">Score</div>
                     <div class="score-value" id="score-display">0</div>
                 </div>
@@ -145,18 +218,22 @@
             </div>
 
             <div class="combo-banner" id="combo-banner">COMBO x2!</div>
+            <div class="streak-indicator" id="streak-indicator">🔥 x5</div>
 
             <div class="powerup-indicator">
                 <div class="powerup-badge shield" id="badge-shield">
                     🛡️
+                    <div class="powerup-timer-ring" id="ring-shield"></div>
                     <div class="powerup-timer-bar" id="timer-shield"></div>
                 </div>
                 <div class="powerup-badge magnet" id="badge-magnet">
                     🧲
+                    <div class="powerup-timer-ring" id="ring-magnet"></div>
                     <div class="powerup-timer-bar" id="timer-magnet"></div>
                 </div>
                 <div class="powerup-badge slowmo" id="badge-slowmo">
                     ⏱️
+                    <div class="powerup-timer-ring" id="ring-slowmo"></div>
                     <div class="powerup-timer-bar" id="timer-slowmo"></div>
                 </div>
             </div>
@@ -209,127 +286,272 @@
             jump: () => {
                 if (!audioCtx) return;
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination); 
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             },
             score: () => {
                 if (!audioCtx) return;
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain); gain.connect(audioCtx.destination); 
+                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
             },
             coin: () => {
                 if (!audioCtx) return;
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'square'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1500, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination); 
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             },
             powerup: () => {
                 if (!audioCtx) return;
-                // Suara khusus untuk powerup
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.type = 'sine'; 
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime); 
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 osc.connect(gain); gain.connect(audioCtx.destination); 
-                osc.start(); 
-                osc.stop(audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
             },
             shieldBreak: () => {
                 if (!audioCtx) return;
-                // Suara saat shield pecah
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.type = 'sawtooth'; 
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime); 
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
                 osc.connect(gain); gain.connect(audioCtx.destination); 
-                osc.start(); 
-                osc.stop(audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             },
             crash: () => {
                 if (!audioCtx) return;
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                osc.type = 'sawtooth'; 
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.connect(gain); gain.connect(audioCtx.destination); 
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            },
+            levelUp: () => {
+                if (!audioCtx) return;
+                // Arpeggio major chord
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator(); 
+                    const gain = audioCtx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.05 + 0.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.05);
+                    osc.stop(audioCtx.currentTime + i * 0.05 + 0.3);
+                });
             }
         };
 
         // ==================== GAME SETUP ====================
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
-        function resizeCanvas() { canvas.width = document.getElementById('game-wrapper').clientWidth; canvas.height = document.getElementById('game-wrapper').clientHeight; }
-        resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-
-        let gameState = 'START'; // START, READY, PLAYING, GAMEOVER
-        let frames = 0; let deathFrame = 0; let score = 0; let coins = 0; let combo = 0; let maxCombo = 0; let perfectPasses = 0; 
-        let gameSpeed = 2;
-        let difficulty = 1; let groundOffset = 0;
+        const gameWrapper = document.getElementById('game-wrapper');
         
-        const POWERUP_DURATION = 400; // Durasi powerup dalam frame (~6.5 detik)
-        
-        const stats = { bestScore: parseInt(localStorage.getItem('skyBestScore')) || 0, totalPlays: parseInt(localStorage.getItem('skyTotalPlays')) || 0, totalCoins: parseInt(localStorage.getItem('skyTotalCoins')) || 0 };
-        document.getElementById('best-score').textContent = stats.bestScore; document.getElementById('total-plays').textContent = stats.totalPlays; document.getElementById('total-coins').textContent = stats.totalCoins;
+        function resizeCanvas() { 
+            canvas.width = gameWrapper.clientWidth; 
+            canvas.height = gameWrapper.clientHeight; 
+        }
+        resizeCanvas(); 
+        window.addEventListener('resize', resizeCanvas);
 
+        let gameState = 'START';
+        let frames = 0, deathFrame = 0;
+        let score = 0, coins = 0, combo = 0, maxCombo = 0, perfectPasses = 0; 
+        let gameSpeed = 1.5; // Lebih lambat di awal
+        let difficulty = 1; 
+        let groundOffset = 0;
+        
+        const POWERUP_DURATION = 600; // 10 detik dalam 60fps
+        
+        const stats = { 
+            bestScore: parseInt(localStorage.getItem('skyBestScore')) || 0, 
+            totalPlays: parseInt(localStorage.getItem('skyTotalPlays')) || 0, 
+            totalCoins: parseInt(localStorage.getItem('skyTotalCoins')) || 0 
+        };
+        
+        document.getElementById('best-score').textContent = stats.bestScore; 
+        document.getElementById('total-plays').textContent = stats.totalPlays; 
+        document.getElementById('total-coins').textContent = stats.totalCoins;
+
+        // ==================== ENHANCED PARTICLE SYSTEM ====================
         let particles = [];
         class Particle {
-            constructor(x, y, type, color) {
-                this.x = x; this.y = y; this.type = type; this.color = color; this.life = 1;
-                this.vx = (Math.random() - 0.5) * 6; this.vy = (Math.random() - 0.5) * 6; this.size = Math.random() * 4 + 2;
-                if (type === 'feather') { this.vy = Math.random() * -3 - 1; this.vx = (Math.random() - 0.5) * 2; this.decay = 0.02; this.gravity = 0.1; } 
-                else if (type === 'sparkle') { this.decay = 0.03; this.gravity = 0; } 
-                else if (type === 'crash') { this.vx *= 2; this.vy *= 2; this.decay = 0.015; this.gravity = 0.2; }
-                else if (type === 'shieldBreak') { this.vx *= 3; this.vy *= 3; this.decay = 0.02; this.gravity = 0.1; this.size = Math.random() * 6 + 4; }
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy; this.life -= this.decay;
-                if (this.type === 'feather' || this.type === 'crash' || this.type === 'shieldBreak') this.vy += this.gravity;
-                if (this.type === 'feather') this.vx *= 0.99;
-            }
-            draw(ctx) {
-                ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
-                if (this.type === 'feather') { ctx.beginPath(); ctx.ellipse(this.x, this.y, this.size, this.size/2, this.life * Math.PI, 0, Math.PI * 2); ctx.fill(); } 
-                else if (this.type === 'shieldBreak') {
-                    // Partikel pecahan shield
-                    ctx.fillStyle = '#4299e1';
-                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            constructor(x, y, type, color, speed = 1) {
+                this.x = x; this.y = y; this.type = type; this.color = color; 
+                this.life = 1; this.decay = 0.02; this.gravity = 0; this.size = Math.random() * 4 + 2;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 4 * speed;
+                this.vx = Math.cos(angle) * velocity;
+                this.vy = Math.sin(angle) * velocity;
+                
+                if (type === 'feather') { 
+                    this.vy = Math.random() * -2 - 0.5; 
+                    this.vx = (Math.random() - 0.5) * 1; 
+                    this.decay = 0.015; 
+                    this.gravity = 0.05;
+                    this.size = Math.random() * 6 + 3;
+                } else if (type === 'sparkle') { 
+                    this.decay = 0.025; 
+                    this.gravity = -0.1; // Naik ke atas
+                    this.size = Math.random() * 3 + 1;
+                } else if (type === 'crash') { 
+                    this.vx *= 2; this.vy *= 2; 
+                    this.decay = 0.012; 
+                    this.gravity = 0.15;
+                    this.size = Math.random() * 8 + 4;
+                } else if (type === 'shieldBreak') { 
+                    this.vx *= 3; this.vy *= 3; 
+                    this.decay = 0.015; 
+                    this.gravity = 0.1; 
+                    this.size = Math.random() * 10 + 5;
+                } else if (type === 'trail') {
+                    this.decay = 0.05;
+                    this.vx = 0; this.vy = 0;
+                    this.size = Math.random() * 8 + 4;
                 }
-                else { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+            }
+            
+            update() {
+                this.x += this.vx; 
+                this.y += this.vy; 
+                this.life -= this.decay;
+                this.rotation += this.rotationSpeed;
+                
+                if (this.gravity !== 0) this.vy += this.gravity;
+                if (this.type === 'feather') this.vx *= 0.98;
+            }
+            
+            draw(ctx) {
+                ctx.save(); 
+                ctx.globalAlpha = this.life; 
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                if (this.type === 'feather') { 
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); 
+                    ctx.ellipse(0, 0, this.size, this.size/2, 0, 0, Math.PI * 2); 
+                    ctx.fill();
+                } else if (this.type === 'sparkle') {
+                    // Draw star shape
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * this.size,
+                                  -Math.sin((18 + i * 72) * Math.PI / 180) * this.size);
+                        ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (this.size/2),
+                                  -Math.sin((54 + i * 72) * Math.PI / 180) * (this.size/2));
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (this.type === 'shieldBreak') {
+                    ctx.fillStyle = '#4299e1';
+                    ctx.beginPath();
+                    ctx.moveTo(-this.size, -this.size);
+                    ctx.lineTo(this.size, -this.size);
+                    ctx.lineTo(0, this.size);
+                    ctx.closePath();
+                    ctx.fill();
+                } else { 
+                    ctx.fillStyle = this.color; 
+                    ctx.beginPath(); 
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2); 
+                    ctx.fill();
+                }
+                
                 ctx.restore();
             }
         }
-        function spawnParticles(x, y, count, type, color) { for (let i = 0; i < count; i++) particles.push(new Particle(x, y, type, color)); }
+        
+        function spawnParticles(x, y, count, type, color, speed = 1) { 
+            for (let i = 0; i < count; i++) particles.push(new Particle(x, y, type, color, speed)); 
+        }
 
-        // ==================== BIRD ====================
+        // ==================== SCREEN SHAKE EFFECT ====================
+        let shakeIntensity = 0;
+        function triggerShake(intensity) {
+            shakeIntensity = intensity;
+        }
+        
+        function updateShake() {
+            if (shakeIntensity > 0) {
+                const dx = (Math.random() - 0.5) * shakeIntensity;
+                const dy = (Math.random() - 0.5) * shakeIntensity;
+                gameWrapper.style.transform = `translate(${dx}px, ${dy}px)`;
+                shakeIntensity *= 0.9;
+                if (shakeIntensity < 0.5) {
+                    shakeIntensity = 0;
+                    gameWrapper.style.transform = 'translate(0, 0)';
+                }
+            }
+        }
+
+        // ==================== ENHANCED BIRD ====================
         const bird = {
-            x: 80, y: 0, velocity: 0, radius: 16, gravity: 0.25, jumpPower: -5.5, rotation: 0, trail: [], 
+            x: 80, y: 0, velocity: 0, radius: 16, 
+            gravity: 0.25, jumpPower: -5.2, // Jump lebih kuat untuk awal yang lebih mudah
+            rotation: 0, trail: [], 
             powerups: { shield: false, magnet: false, slowmo: false }, 
             powerupTimers: { shield: 0, magnet: 0, slowmo: 0 }, 
+            maxTimers: { shield: 0, magnet: 0, slowmo: 0 },
             invulnerable: 0,
-            maxTimers: { shield: 0, magnet: 0, slowmo: 0 }, // Untuk tracking durasi maksimum
+            rainbowHue: 0,
             
             reset() {
-                this.y = canvas.height / 2; this.velocity = 0; this.rotation = 0; this.trail = []; 
+                this.y = canvas.height / 2; 
+                this.velocity = 0; 
+                this.rotation = 0; 
+                this.trail = []; 
                 this.powerups = {shield: false, magnet: false, slowmo: false}; 
                 this.powerupTimers = {shield: 0, magnet: 0, slowmo: 0};
                 this.maxTimers = {shield: 0, magnet: 0, slowmo: 0};
                 this.invulnerable = 0;
+                this.rainbowHue = 0;
                 this.updatePowerupUI();
             },
             
             update() {
-                this.velocity += this.gravity; this.y += this.velocity;
+                this.velocity += this.gravity; 
+                this.y += this.velocity;
                 this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, this.velocity * 0.08));
                 
-                if (frames % 4 === 0 && gameState === 'PLAYING') this.trail.push({x: this.x, y: this.y, life: 1});
-                this.trail.forEach(t => t.life -= 0.1); this.trail = this.trail.filter(t => t.life > 0);
+                // Rainbow trail saat streak tinggi atau powerup aktif
+                if (frames % 3 === 0 && gameState === 'PLAYING') {
+                    let trailColor = '#ffd93d';
+                    if (consecutiveCoins >= 5 || Object.values(this.powerups).some(p => p)) {
+                        this.rainbowHue = (this.rainbowHue + 10) % 360;
+                        trailColor = `hsl(${this.rainbowHue}, 100%, 60%)`;
+                    }
+                    this.trail.push({x: this.x, y: this.y, life: 1, color: trailColor, size: this.radius});
+                }
+                
+                this.trail.forEach(t => t.life -= 0.08); 
+                this.trail = this.trail.filter(t => t.life > 0);
                 
                 // Update powerup timers
                 Object.keys(this.powerupTimers).forEach(key => {
@@ -343,7 +565,7 @@
                 
                 if (this.invulnerable > 0) this.invulnerable--;
                 
-                // Mencegah burung tembus tanah
+                // Floor collision
                 const floorY = canvas.height - 80;
                 if (this.y + this.radius >= floorY) {
                     this.y = floorY - this.radius;
@@ -360,7 +582,17 @@
                 this.maxTimers[type] = POWERUP_DURATION;
                 document.getElementById(`badge-${type}`).classList.add('active');
                 sfx.powerup();
-                spawnParticles(this.x, this.y, 15, 'sparkle', '#ffffff');
+                
+                // Flash effect
+                const flash = document.createElement('div');
+                flash.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:' + 
+                    (type === 'shield' ? '#4299e1' : type === 'magnet' ? '#ecc94b' : '#9f7aea') + 
+                    ';opacity:0.3;pointer-events:none;z-index:50;transition:opacity 0.5s;';
+                gameWrapper.appendChild(flash);
+                setTimeout(() => flash.style.opacity = '0', 50);
+                setTimeout(() => flash.remove(), 550);
+                
+                spawnParticles(this.x, this.y, 20, 'sparkle', '#ffffff', 1.5);
             },
             
             deactivatePowerup(type) {
@@ -368,278 +600,504 @@
                 this.powerupTimers[type] = 0;
                 this.maxTimers[type] = 0;
                 document.getElementById(`badge-${type}`).classList.remove('active');
+                
+                // Reset UI
                 document.getElementById(`timer-${type}`).style.width = '100%';
+                document.getElementById(`ring-${type}`).style.transform = 'rotate(0deg)';
             },
             
-            // FIX: Method khusus untuk memecahkan shield saat nabrak
             breakShield() {
                 if (!this.powerups.shield) return;
                 
-                // Efek visual pecahan shield
-                spawnParticles(this.x, this.y, 20, 'shieldBreak', '#4299e1');
+                spawnParticles(this.x, this.y, 25, 'shieldBreak', '#4299e1', 2);
                 sfx.shieldBreak();
+                triggerShake(15);
                 
-                // Deaktivasi shield
                 this.deactivatePowerup('shield');
-                this.invulnerable = 60; // Kebal lebih lama setelah shield pecah (1 detik)
-                
-                // Efek getaran layar (visual feedback)
-                canvas.style.transform = 'translateX(5px)';
-                setTimeout(() => canvas.style.transform = 'translateX(-5px)', 50);
-                setTimeout(() => canvas.style.transform = 'translateX(5px)', 100);
-                setTimeout(() => canvas.style.transform = 'translateX(0)', 150);
+                this.invulnerable = 90; // 1.5 detik kebal
             },
             
             updatePowerupUI() {
-                // Update progress bar untuk setiap powerup
                 ['shield', 'magnet', 'slowmo'].forEach(type => {
                     const timerBar = document.getElementById(`timer-${type}`);
+                    const timerRing = document.getElementById(`ring-${type}`);
+                    
                     if (this.powerups[type] && this.maxTimers[type] > 0) {
-                        const percentage = (this.powerupTimers[type] / this.maxTimers[type]) * 100;
-                        timerBar.style.width = percentage + '%';
-                    } else {
-                        timerBar.style.width = '100%';
+                        const percentage = (this.powerupTimers[type] / this.maxTimers[type]);
+                        timerBar.style.width = (percentage * 100) + '%';
+                        // Rotate ring based on remaining time (360 deg = full)
+                        timerRing.style.transform = `rotate(${360 - (percentage * 360)}deg)`;
+                        
+                        // Warning color saat hampir habis
+                        if (percentage < 0.2) {
+                            timerBar.style.background = '#ff6b6b';
+                            timerRing.style.borderTopColor = '#ff6b6b';
+                        } else {
+                            timerBar.style.background = 'currentColor';
+                            timerRing.style.borderTopColor = 'currentColor';
+                        }
                     }
                 });
             },
             
             jump() {
-                this.velocity = this.jumpPower; sfx.jump();
-                spawnParticles(this.x - 10, this.y + 10, 3, 'feather', '#ffffff');
+                this.velocity = this.jumpPower; 
+                sfx.jump();
+                spawnParticles(this.x - 10, this.y + 10, 5, 'feather', '#ffffff');
+                
+                // Squash animation
+                gameWrapper.style.transform = 'scale(1.02, 0.98)';
+                setTimeout(() => gameWrapper.style.transform = 'scale(1, 1)', 100);
             },
             
             draw(ctx) {
+                // Draw trail dengan glow
                 this.trail.forEach((t, i) => {
-                    ctx.save(); ctx.globalAlpha = t.life * 0.3; ctx.fillStyle = '#ffd93d'; ctx.beginPath();
-                    ctx.arc(t.x - (this.trail.length - i) * 3, t.y, this.radius * 0.5 * t.life, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                    ctx.save(); 
+                    ctx.globalAlpha = t.life * 0.4; 
+                    ctx.fillStyle = t.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = t.color;
+                    ctx.beginPath();
+                    ctx.arc(t.x - (this.trail.length - i) * 2, t.y, t.size * 0.6 * t.life, 0, Math.PI * 2); 
+                    ctx.fill(); 
+                    ctx.restore();
                 });
                 
-                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                ctx.save(); 
+                ctx.translate(this.x, this.y); 
+                ctx.rotate(this.rotation);
                 
-                // ==================== VISUALISASI SHIELD DENGAN TIMER ====================
+                // ==================== POWERUP VISUAL EFFECTS ====================
+                
+                // Shield dengan timer visual
                 if (this.powerups.shield) {
                     const remaining = this.powerupTimers.shield;
                     const max = this.maxTimers.shield || POWERUP_DURATION;
                     const progress = remaining / max;
                     
-                    // Lingkaran luar (background)
-                    ctx.beginPath();
-                    ctx.strokeStyle = 'rgba(66, 153, 225, 0.3)';
-                    ctx.lineWidth = 4;
-                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
-                    ctx.stroke();
-                    
-                    // Lingkaran timer (yang berkurang)
-                    ctx.beginPath();
+                    // Outer glow
+                    ctx.save();
+                    ctx.globalAlpha = 0.3 + Math.sin(frames * 0.1) * 0.1;
                     ctx.strokeStyle = '#4299e1';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineDashOffset = -frames * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                    
+                    // Timer arc
+                    ctx.beginPath();
+                    ctx.strokeStyle = progress < 0.2 ? '#ff6b6b' : '#4299e1';
                     ctx.lineWidth = 4;
                     ctx.lineCap = 'round';
-                    // Mulai dari -90 derajat (atas)
                     const startAngle = -Math.PI / 2;
                     const endAngle = startAngle + (Math.PI * 2 * progress);
                     ctx.arc(0, 0, this.radius + 15, startAngle, endAngle);
                     ctx.stroke();
                     
-                    // Efek glow pulsasi
+                    // Inner fill
                     ctx.save();
-                    ctx.globalAlpha = 0.6 + Math.sin(frames * 0.2) * 0.2;
-                    ctx.strokeStyle = '#63b3ed';
-                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.1;
+                    ctx.fillStyle = '#4299e1';
                     ctx.beginPath();
-                    ctx.arc(0, 0, this.radius + 18, 0, Math.PI * 2);
-                    ctx.stroke();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI * 2);
+                    ctx.fill();
                     ctx.restore();
-                    
-                    // Teks timer detik
-                    if (remaining < 180) { // Tampilkan teks saat < 3 detik
-                        ctx.save();
-                        ctx.fillStyle = '#4299e1';
-                        ctx.font = 'bold 12px Nunito';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(Math.ceil(remaining / 60), 0, -this.radius - 25);
-                        ctx.restore();
-                    }
                 }
                 
-                // Efek magnet (lingkaran tarikan)
+                // Magnet effect - area tarikan
                 if (this.powerups.magnet) {
+                    const pulse = (Math.sin(frames * 0.1) + 1) / 2;
                     ctx.save();
-                    ctx.globalAlpha = 0.3;
+                    ctx.globalAlpha = 0.1 + pulse * 0.1;
                     ctx.strokeStyle = '#ecc94b';
                     ctx.lineWidth = 2;
+                    ctx.setLineDash([10, 5]);
                     ctx.beginPath();
                     ctx.arc(0, 0, 150, 0, Math.PI * 2);
                     ctx.stroke();
+                    
+                    // Rotating rings
+                    ctx.globalAlpha = 0.2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 100 + pulse * 20, frames * 0.02, frames * 0.02 + Math.PI * 1.5);
+                    ctx.stroke();
                     ctx.restore();
                 }
                 
+                // Slowmo effect - blur/ghost
+                if (this.powerups.slowmo) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = '#9f7aea';
+                    for (let i = 1; i <= 3; i++) {
+                        ctx.beginPath();
+                        ctx.arc(-i * 5, 0, this.radius * (1 - i * 0.1), 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+                
+                // Bird body dengan gradient dinamis
                 const bodyGrad = ctx.createRadialGradient(-5, -5, 0, 0, 0, this.radius);
-                bodyGrad.addColorStop(0, '#ffe066'); bodyGrad.addColorStop(0.7, '#ffd43b'); bodyGrad.addColorStop(1, '#fcc419');
-                ctx.fillStyle = bodyGrad; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+                if (consecutiveCoins >= 5) {
+                    // Rainbow mode
+                    const hue = (frames * 2) % 360;
+                    bodyGrad.addColorStop(0, `hsl(${hue}, 100%, 70%)`);
+                    bodyGrad.addColorStop(0.7, `hsl(${hue}, 100%, 60%)`);
+                    bodyGrad.addColorStop(1, `hsl(${hue}, 100%, 50%)`);
+                } else {
+                    bodyGrad.addColorStop(0, '#ffe066'); 
+                    bodyGrad.addColorStop(0.7, '#ffd43b'); 
+                    bodyGrad.addColorStop(1, '#fcc419');
+                }
                 
-                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(6, -4, 7, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#2d3748'; ctx.beginPath(); ctx.arc(8, -4, 3.5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = bodyGrad; 
+                ctx.beginPath(); 
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2); 
+                ctx.fill();
                 
-                ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(20, 3); ctx.lineTo(10, 6); ctx.closePath(); ctx.fill();
+                // Eye dengan blink animation
+                ctx.fillStyle = 'white'; 
+                ctx.beginPath(); 
+                ctx.arc(6, -4, 7, 0, Math.PI * 2); 
+                ctx.fill();
                 
-                const flap = Math.sin(frames * 0.3) * 0.3;
-                ctx.save(); ctx.translate(-5, 5); ctx.rotate(flap); ctx.fillStyle = '#fff9db'; ctx.beginPath(); ctx.ellipse(0, 0, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                const blink = Math.sin(frames * 0.05) > 0.95;
+                ctx.fillStyle = blink ? '#2d3748' : '#1a202c'; 
+                ctx.beginPath(); 
+                ctx.arc(8, -4, blink ? 1 : 3.5, 0, Math.PI * 2); 
+                ctx.fill();
                 
-                ctx.fillStyle = '#fcc419'; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-20, -5); ctx.lineTo(-20, 5); ctx.closePath(); ctx.fill();
+                // Beak
+                ctx.fillStyle = '#ff6b6b'; 
+                ctx.beginPath(); 
+                ctx.moveTo(10, 0); 
+                ctx.lineTo(20, 3); 
+                ctx.lineTo(10, 6); 
+                ctx.closePath(); 
+                ctx.fill();
+                
+                // Wing dengan flap animation
+                const flap = Math.sin(frames * 0.3) * 0.4;
+                ctx.save(); 
+                ctx.translate(-5, 5); 
+                ctx.rotate(flap); 
+                ctx.fillStyle = consecutiveCoins >= 5 ? '#fff' : '#fff9db'; 
+                ctx.beginPath(); 
+                ctx.ellipse(0, 0, 10, 6, 0, 0, Math.PI * 2); 
+                ctx.fill(); 
+                ctx.restore();
+                
+                // Tail
+                ctx.fillStyle = '#fcc419'; 
+                ctx.beginPath(); 
+                ctx.moveTo(-12, 0); 
+                ctx.lineTo(-20, -5); 
+                ctx.lineTo(-20, 5); 
+                ctx.closePath(); 
+                ctx.fill();
+                
                 ctx.restore();
             }
         };
 
-        // ==================== PIPES & ITEMS ====================
-        let pipes = []; let items = [];
+        // ==================== FIXED PIPE SYSTEM ====================
+        let pipes = []; 
+        let items = [];
+        
         class Pipe {
             constructor() {
-                this.x = canvas.width; this.w = 65;
-                this.gap = Math.max(150 - (difficulty * 5), 120);
-                this.minHeight = 60; const maxPos = canvas.height - 80 - this.gap - this.minHeight * 2;
-                this.topHeight = Math.floor(Math.random() * maxPos) + this.minHeight; 
+                this.x = canvas.width; 
+                this.w = 60; // Sedikit lebih kecil
+                
+                // FIX: Gap lebih besar di awal, bertahap menyempit
+                const minGap = 160; // Gap minimum lebih besar
+                const maxGap = 200; // Gap maksimum
+                const gapReduction = Math.min(difficulty * 3, 40); // Berkurang perlahan
+                this.gap = Math.max(minGap, maxGap - gapReduction);
+                
+                this.minHeight = 80; // Minimum height lebih besar agar tidak terlalu pendek
+                const availableSpace = canvas.height - 80 - this.gap - (this.minHeight * 2);
+                
+                // FIX: Pastikan tidak negatif
+                if (availableSpace > 0) {
+                    this.topHeight = Math.floor(Math.random() * availableSpace) + this.minHeight;
+                } else {
+                    this.topHeight = this.minHeight;
+                }
+                
                 this.bottomY = this.topHeight + this.gap;
-                this.passed = false; this.scored = false;
+                this.passed = false; 
+                this.scored = false;
+                this.highlighted = false;
             }
+            
             update(speed) { this.x -= speed; }
+            
             draw(ctx) {
+                // Gradient 3D
                 const grad = ctx.createLinearGradient(this.x, 0, this.x + this.w, 0);
-                grad.addColorStop(0, '#74c02c');
-                grad.addColorStop(0.5, '#95e43c');
-                grad.addColorStop(1, '#54901c');
+                grad.addColorStop(0, '#68d391');
+                grad.addColorStop(0.4, '#9ae6b4'); // Highlight
+                grad.addColorStop(1, '#48bb78');
 
                 ctx.fillStyle = grad;
                 ctx.lineWidth = 3;
-                ctx.strokeStyle = '#24520c';
+                ctx.strokeStyle = '#276749';
 
                 const capHeight = 25;
-                const capExtraWidth = 10;
+                const capExtraWidth = 8;
 
-                ctx.fillRect(this.x, 0, this.w, this.topHeight - capHeight);
-                ctx.strokeRect(this.x, 0, this.w, this.topHeight - capHeight);
+                // Pipa atas
+                ctx.fillRect(this.x, -10, this.w, this.topHeight - capHeight + 10);
+                ctx.strokeRect(this.x, -10, this.w, this.topHeight - capHeight + 10);
+                
+                // Cap atas
                 ctx.fillRect(this.x - (capExtraWidth/2), this.topHeight - capHeight, this.w + capExtraWidth, capHeight);
                 ctx.strokeRect(this.x - (capExtraWidth/2), this.topHeight - capHeight, this.w + capExtraWidth, capHeight);
+                
+                // Highlight cap
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(this.x - (capExtraWidth/2) + 3, this.topHeight - capHeight + 3, (this.w + capExtraWidth) / 2 - 3, capHeight - 6);
 
+                // Pipa bawah
                 const bottomBodyHeight = canvas.height - this.bottomY - 80;
+                ctx.fillStyle = grad;
                 ctx.fillRect(this.x - (capExtraWidth/2), this.bottomY, this.w + capExtraWidth, capHeight);
                 ctx.strokeRect(this.x - (capExtraWidth/2), this.bottomY, this.w + capExtraWidth, capHeight);
-                ctx.fillRect(this.x, this.bottomY + capHeight, this.w, bottomBodyHeight - capHeight);
-                ctx.strokeRect(this.x, this.bottomY + capHeight, this.w, bottomBodyHeight - capHeight);
+                
+                // Highlight cap bawah
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(this.x - (capExtraWidth/2) + 3, this.bottomY + 3, (this.w + capExtraWidth) / 2 - 3, capHeight - 6);
+                
+                ctx.fillStyle = grad;
+                ctx.fillRect(this.x, this.bottomY + capHeight, this.w, bottomBodyHeight);
+                ctx.strokeRect(this.x, this.bottomY + capHeight, this.w, bottomBodyHeight);
             }
         }
 
         class Cloud {
             constructor(x) {
-                this.x = x !== undefined ? x : canvas.width + Math.random() * 100;
+                this.x = x !== undefined ? x : canvas.width + Math.random() * 200;
                 this.y = Math.random() * (canvas.height / 2.5);
-                this.speed = Math.random() * 0.5 + 0.2;
+                this.speed = Math.random() * 0.3 + 0.1;
                 this.scale = Math.random() * 0.6 + 0.4;
             }
-            update(baseSpeed) {
-                this.x -= this.speed * (bird.powerups.slowmo ? 0.5 : 1);
+            update() {
+                this.x -= this.speed * (bird.powerups.slowmo ? 0.3 : 1);
             }
             draw(ctx) {
                 ctx.save();
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, 20 * this.scale, Math.PI * 0.5, Math.PI * 1.5);
-                ctx.arc(this.x + 15 * this.scale, this.y - 15 * this.scale, 20 * this.scale, Math.PI * 1, Math.PI * 2);
-                ctx.arc(this.x + 35 * this.scale, this.y, 25 * this.scale, Math.PI * 1.5, Math.PI * 0.5);
-                ctx.moveTo(this.x, this.y + 20 * this.scale);
-                ctx.lineTo(this.x + 35 * this.scale, this.y + 25 * this.scale);
+                ctx.arc(this.x, this.y, 25 * this.scale, Math.PI * 0.5, Math.PI * 1.5);
+                ctx.arc(this.x + 20 * this.scale, this.y - 20 * this.scale, 25 * this.scale, Math.PI * 1, Math.PI * 2);
+                ctx.arc(this.x + 50 * this.scale, this.y, 30 * this.scale, Math.PI * 1.5, Math.PI * 0.5);
+                ctx.moveTo(this.x, this.y + 25 * this.scale);
+                ctx.lineTo(this.x + 50 * this.scale, this.y + 30 * this.scale);
                 ctx.fill();
                 ctx.restore();
             }
         }
 
-        let clouds = [new Cloud(100), new Cloud(250), new Cloud(400)];
+        let clouds = [new Cloud(100), new Cloud(300), new Cloud(500)];
 
         class Item {
             constructor(x, y, type) {
                 this.x = x; this.y = y; this.type = type;
-                this.radius = 12; this.baseY = y; this.frame = Math.random() * 100;
+                this.radius = 14; 
+                this.baseY = y; 
+                this.frame = Math.random() * 100;
                 this.collected = false;
+                this.magneted = false;
             }
             update(speed) {
                 this.x -= speed;
-                this.frame += 0.1;
-                this.y = this.baseY + Math.sin(this.frame) * 5;
+                this.frame += 0.15;
+                this.y = this.baseY + Math.sin(this.frame) * 8;
 
-                if (this.type === 'coin' && bird.powerups.magnet) {
-                    const dx = bird.x - this.x; const dy = bird.y - this.y;
+                if (this.type === 'coin' && bird.powerups.magnet && !this.magneted) {
+                    const dx = bird.x - this.x; 
+                    const dy = bird.y - this.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < 150) {
-                        this.x += dx * 0.15; this.y += dy * 0.15;
+                        this.magneted = true;
+                        this.x += dx * 0.12; 
+                        this.y += dy * 0.12;
+                    } else {
+                        this.magneted = false;
                     }
                 }
             }
             draw(ctx) {
-                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.save(); 
+                ctx.translate(this.x, this.y);
+                
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(0, 20, this.radius, this.radius/3, 0, 0, Math.PI*2);
+                ctx.fill();
+                
                 if (this.type === 'coin') {
-                    // Animasi koin berputar
+                    // Spin animation
                     const scale = Math.abs(Math.sin(this.frame * 0.5));
                     ctx.scale(scale, 1);
                     
-                    ctx.fillStyle = '#ffd93d'; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#f6ad55'; ctx.beginPath(); ctx.arc(0, 0, this.radius - 3, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Nunito'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 0, 1);
+                    // Outer ring
+                    ctx.fillStyle = '#f6e05e';
+                    ctx.beginPath(); 
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2); 
+                    ctx.fill();
+                    
+                    // Inner
+                    ctx.fillStyle = '#d69e2e';
+                    ctx.beginPath(); 
+                    ctx.arc(0, 0, this.radius - 3, 0, Math.PI * 2); 
+                    ctx.fill();
+                    
+                    // Shine
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.6;
+                    ctx.beginPath();
+                    ctx.arc(-3, -3, 3, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    ctx.fillStyle = '#fff'; 
+                    ctx.font = 'bold 14px Nunito'; 
+                    ctx.textAlign = 'center'; 
+                    ctx.textBaseline = 'middle'; 
+                    ctx.fillText('$', 0, 1);
                 } else {
                     const colors = { shield: '#4299e1', magnet: '#ecc94b', slowmo: '#9f7aea' };
                     const icons = { shield: '🛡️', magnet: '🧲', slowmo: '⏱️' };
-                    ctx.fillStyle = colors[this.type];
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2); ctx.fill();
                     
-                    // Efek pulse untuk powerup
-                    ctx.save();
-                    ctx.globalAlpha = 0.5 + Math.sin(this.frame * 0.5) * 0.3;
+                    // Glow effect
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = colors[this.type];
+                    
+                    ctx.fillStyle = colors[this.type];
+                    ctx.beginPath(); 
+                    ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2); 
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 0;
+                    
+                    // Pulse ring
                     ctx.strokeStyle = colors[this.type];
                     ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.arc(0, 0, this.radius + 6 + Math.sin(this.frame * 0.5) * 2, 0, Math.PI * 2); ctx.stroke();
-                    ctx.restore();
+                    ctx.globalAlpha = 0.5 + Math.sin(this.frame * 0.5) * 0.3;
+                    ctx.beginPath(); 
+                    ctx.arc(0, 0, this.radius + 6 + Math.sin(this.frame * 0.5) * 3, 0, Math.PI * 2); 
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
                     
-                    ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(icons[this.type], 0, 1);
+                    ctx.fillStyle = '#fff'; 
+                    ctx.font = '14px Arial'; 
+                    ctx.textAlign = 'center'; 
+                    ctx.textBaseline = 'middle'; 
+                    ctx.fillText(icons[this.type], 0, 1);
                 }
+                
+                // Magnet line
+                if (this.magneted) {
+                    ctx.strokeStyle = '#ecc94b';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.globalAlpha = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(bird.x - this.x, bird.y - this.y);
+                    ctx.stroke();
+                }
+                
                 ctx.restore();
             }
         }
 
         // ==================== BACKGROUND ====================
         function drawBackground() {
+            // Dynamic sky gradient berdasarkan score
             const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            skyGrad.addColorStop(0, '#63b3ed'); skyGrad.addColorStop(0.5, '#90cdf4'); skyGrad.addColorStop(1, '#bee3f8');
-            ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (score < 10) {
+                skyGrad.addColorStop(0, '#63b3ed'); 
+                skyGrad.addColorStop(0.5, '#90cdf4'); 
+                skyGrad.addColorStop(1, '#bee3f8');
+            } else if (score < 30) {
+                skyGrad.addColorStop(0, '#4299e1'); 
+                skyGrad.addColorStop(0.5, '#63b3ed'); 
+                skyGrad.addColorStop(1, '#90cdf4');
+            } else {
+                skyGrad.addColorStop(0, '#667eea'); 
+                skyGrad.addColorStop(0.5, '#764ba2'); 
+                skyGrad.addColorStop(1, '#9f7aea');
+            }
+            
+            ctx.fillStyle = skyGrad; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             clouds.forEach(cloud => cloud.draw(ctx));
 
             const floorY = canvas.height - 80;
-            ctx.fillStyle = '#48bb78'; ctx.fillRect(0, floorY, canvas.width, 80);
             
-            ctx.fillStyle = '#38a169';
-            for (let x = 0; x < canvas.width + 50; x += 30) {
-                const drawX = x - (groundOffset % 30);
-                const h = 10 + Math.sin(x * 0.1) * 5;
-                ctx.fillRect(drawX, floorY, 15, h);
+            // Grass gradient
+            const grassGrad = ctx.createLinearGradient(0, floorY, 0, canvas.height);
+            grassGrad.addColorStop(0, '#48bb78');
+            grassGrad.addColorStop(1, '#38a169');
+            ctx.fillStyle = grassGrad; 
+            ctx.fillRect(0, floorY, canvas.width, 80);
+            
+            // Animated grass
+            ctx.fillStyle = '#2f855a';
+            for (let x = 0; x < canvas.width + 50; x += 25) {
+                const drawX = x - (groundOffset % 25);
+                const h = 8 + Math.sin((x + frames) * 0.05) * 4;
+                ctx.fillRect(drawX, floorY - h/2, 12, h);
             }
-            ctx.fillStyle = '#2f855a'; ctx.fillRect(0, floorY, canvas.width, 8);
+            
+            // Top border
+            ctx.fillStyle = '#2f855a'; 
+            ctx.fillRect(0, floorY, canvas.width, 6);
         }
 
         // ==================== GAME LOGIC ====================
-        let spawnTimer = 0; let comboTimer = 0;
-        let lastScoreTime = 0;
+        let spawnTimer = 0;
         let consecutiveCoins = 0;
+        let lastPipeX = 0;
 
         function resetGame() {
-            bird.reset(); pipes = []; items = []; particles = []; clouds = [new Cloud(100), new Cloud(300)];
-            score = 0; coins = 0; combo = 0; maxCombo = 0; perfectPasses = 0; gameSpeed = 2; difficulty = 1; spawnTimer = 0; comboTimer = 0; frames = 0; consecutiveCoins = 0;
+            bird.reset(); 
+            pipes = []; 
+            items = []; 
+            particles = []; 
+            clouds = [new Cloud(100), new Cloud(300), new Cloud(500)];
+            score = 0; 
+            coins = 0; 
+            combo = 0; 
+            maxCombo = 0; 
+            perfectPasses = 0; 
+            gameSpeed = 1.5; // Start slower
+            difficulty = 1; 
+            spawnTimer = 0; 
+            frames = 0; 
+            consecutiveCoins = 0;
+            lastPipeX = 0;
+            shakeIntensity = 0;
             
-            document.getElementById('score-display').textContent = '0'; document.getElementById('medal').textContent = '🥉';
+            document.getElementById('score-display').textContent = '0'; 
+            document.getElementById('medal').textContent = '🥉';
             document.getElementById('combo-banner').classList.remove('combo-show');
+            document.getElementById('score-box').classList.remove('pulse');
             
-            // Reset UI powerup
             ['shield', 'magnet', 'slowmo'].forEach(type => {
                 document.getElementById(`badge-${type}`).classList.remove('active');
                 document.getElementById(`timer-${type}`).style.width = '100%';
+                document.getElementById(`ring-${type}`).style.transform = 'rotate(0deg)';
             });
             
             gameState = 'READY';
@@ -654,14 +1112,26 @@
             el.style.left = x + 'px';
             el.style.top = y + 'px';
             el.style.color = color;
-            document.getElementById('game-wrapper').appendChild(el);
-            setTimeout(() => el.remove(), 1000);
+            gameWrapper.appendChild(el);
+            setTimeout(() => el.remove(), 1200);
+        }
+
+        function showStreak(count) {
+            const el = document.getElementById('streak-indicator');
+            el.textContent = `🔥 x${count}`;
+            el.classList.remove('streak-show');
+            void el.offsetWidth; // Trigger reflow
+            el.classList.add('streak-show');
         }
 
         function gameOver() {
             if (gameState === 'GAMEOVER') return;
-            gameState = 'GAMEOVER'; deathFrame = frames;
-            sfx.crash(); spawnParticles(bird.x, bird.y, 20, 'crash', '#ff6b6b');
+            gameState = 'GAMEOVER'; 
+            deathFrame = frames;
+            
+            sfx.crash(); 
+            spawnParticles(bird.x, bird.y, 30, 'crash', '#ff6b6b', 2);
+            triggerShake(20);
             
             stats.totalPlays++;
             if (score > stats.bestScore) { 
@@ -677,6 +1147,7 @@
             localStorage.setItem('skyTotalCoins', stats.totalCoins);
             
             let medal = score >= 200 ? '💎' : score >= 100 ? '🥇' : score >= 50 ? '🥈' : '🥉';
+            
             setTimeout(() => {
                 document.getElementById('final-score').textContent = score; 
                 document.getElementById('final-medal').textContent = medal;
@@ -684,52 +1155,71 @@
                 document.getElementById('final-coins').textContent = coins;
                 document.getElementById('final-perfect').textContent = perfectPasses;
                 document.getElementById('game-over-screen').classList.remove('hidden');
-            }, 500);
+            }, 800);
         }
 
         function update() {
             frames++;
+            updateShake();
             
             if (gameState === 'READY') {
-                bird.y = canvas.height / 2 + Math.sin(frames * 0.1) * 10;
-                bird.rotation = 0;
-                groundOffset += gameSpeed;
+                bird.y = canvas.height / 2 + Math.sin(frames * 0.08) * 15;
+                bird.rotation = Math.sin(frames * 0.05) * 0.1;
+                groundOffset += gameSpeed * 0.5;
             } 
             else if (gameState === 'PLAYING') {
                 bird.update();
                 
-                let currentSpeed = bird.powerups.slowmo ? gameSpeed * 0.5 : gameSpeed;
+                let currentSpeed = bird.powerups.slowmo ? gameSpeed * 0.4 : gameSpeed;
                 groundOffset += currentSpeed;
                 
                 clouds.forEach(cloud => cloud.update());
-                if (frames % 150 === 0) clouds.push(new Cloud());
-                clouds = clouds.filter(c => c.x > -50);
+                if (frames % 200 === 0) clouds.push(new Cloud());
+                clouds = clouds.filter(c => c.x > -100);
 
                 spawnTimer++;
-                if (spawnTimer > Math.max(50, 100 - difficulty * 5)) {
+                // FIX: Spawn rate lebih konsisten, tidak terlalu cepat di awal
+                const spawnRate = Math.max(90, 140 - (difficulty * 2));
+                
+                if (spawnTimer > spawnRate) { 
                     spawnTimer = 0; 
                     let newPipe = new Pipe();
+                    
+                    // FIX: Pastikan tidak overlap dengan pipa sebelumnya
+                    if (pipes.length > 0) {
+                        const lastPipe = pipes[pipes.length - 1];
+                        const minDistance = 250; // Jarak minimum antar pipa
+                        if (newPipe.x - lastPipe.x < minDistance) {
+                            newPipe.x = lastPipe.x + minDistance;
+                        }
+                    }
+                    
                     pipes.push(newPipe);
+                    lastPipeX = newPipe.x;
 
-                    if (Math.random() < 0.8) {
+                    // Spawn items dengan probabilitas
+                    if (Math.random() < 0.75) {
                         let itemType = 'coin';
                         let rand = Math.random();
                         
-                        // Peluang power-up
-                        if (rand < 0.08) itemType = 'shield';      
-                        else if (rand < 0.16) itemType = 'magnet'; 
-                        else if (rand < 0.24) itemType = 'slowmo'; 
+                        // Peluang power-up meningkat dengan score
+                        const powerupChance = Math.min(0.05 + (score * 0.002), 0.15);
+                        
+                        if (rand < powerupChance) itemType = 'shield';      
+                        else if (rand < powerupChance * 2) itemType = 'magnet'; 
+                        else if (rand < powerupChance * 3) itemType = 'slowmo'; 
                         
                         items.push(new Item(newPipe.x + newPipe.w / 2, newPipe.topHeight + newPipe.gap / 2, itemType));
                     }
                 }
                 
-                // UPDATE ITEM & DETEKSI TABRAKAN
+                // UPDATE ITEMS
                 for (let i = items.length - 1; i >= 0; i--) {
                     let item = items[i];
                     item.update(currentSpeed);
                     
-                    const dx = bird.x - item.x; const dy = bird.y - item.y;
+                    const dx = bird.x - item.x; 
+                    const dy = bird.y - item.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     
                     if (dist < bird.radius + item.radius) {
@@ -737,15 +1227,16 @@
                             coins++;
                             consecutiveCoins++;
                             
-                            // Combo system: semakin banyak koin berturut-turut, semakin besar bonus
-                            if (consecutiveCoins > 1) {
-                                const bonus = Math.min(consecutiveCoins * 10, 50);
-                                showFloatingText(`+${bonus}`, bird.x, bird.y - 30, '#ffd93d');
+                            // Streak bonus
+                            if (consecutiveCoins >= 3) {
+                                const bonus = Math.min(consecutiveCoins * 5, 50);
+                                score += Math.floor(bonus / 10);
+                                if (consecutiveCoins % 5 === 0) showStreak(consecutiveCoins);
                             }
                             
                             document.getElementById('total-coins').textContent = stats.totalCoins + coins;
                             sfx.coin();
-                            spawnParticles(item.x, item.y, 5, 'sparkle', '#ffd93d');
+                            spawnParticles(item.x, item.y, 8, 'sparkle', '#ffd93d', 1.2);
                         } else {
                             bird.activatePowerup(item.type);
                         }
@@ -753,18 +1244,18 @@
                         continue;
                     }
                     if (item.x < -50) {
-                        if (item.type === 'coin') consecutiveCoins = 0; // Reset combo jika koin dilewatkan
+                        if (item.type === 'coin') consecutiveCoins = 0;
                         items.splice(i, 1);
                     }
                 }
                 
-                // UPDATE PIPA & KESULITAN PROGRESIF
+                // UPDATE PIPES
                 for (let i = pipes.length - 1; i >= 0; i--) {
                     const pipe = pipes[i]; 
                     pipe.update(currentSpeed);
                     
-                    // Deteksi tabrakan
-                    const hitPadding = 6; 
+                    // Collision detection dengan padding
+                    const hitPadding = 4; 
                     const birdLeft = bird.x - bird.radius + hitPadding;
                     const birdRight = bird.x + bird.radius - hitPadding;
                     const birdTop = bird.y - bird.radius + hitPadding;
@@ -774,10 +1265,9 @@
                     const hitY = birdTop < pipe.topHeight || birdBottom > pipe.bottomY;
                     
                     if (hitX && hitY) {
-                        // FIX: Gunakan method breakShield() yang benar
                         if (bird.powerups.shield) {
                             bird.breakShield();
-                            spawnParticles(pipe.x, bird.y, 15, 'crash', '#48bb78');
+                            spawnParticles(pipe.x + pipe.w/2, bird.y, 20, 'crash', '#48bb78', 1.5);
                             pipes.splice(i, 1);
                             continue;
                         } else if (bird.invulnerable <= 0) {
@@ -791,32 +1281,41 @@
                         pipe.scored = true; 
                         score++;
                         
-                        // Perfect pass detection (lewat tengah)
+                        // Pulse animation
+                        const scoreBox = document.getElementById('score-box');
+                        scoreBox.classList.add('pulse');
+                        setTimeout(() => scoreBox.classList.remove('pulse'), 200);
+                        
+                        // Perfect pass
                         const centerGap = pipe.topHeight + (pipe.gap / 2);
                         const distFromCenter = Math.abs(bird.y - centerGap);
-                        if (distFromCenter < 30) {
+                        if (distFromCenter < 40) {
                             perfectPasses++;
-                            showFloatingText('PERFECT!', bird.x, bird.y - 50, '#48bb78');
-                            spawnParticles(bird.x, bird.y, 10, 'sparkle', '#48bb78');
+                            score += 2; // Bonus perfect
+                            showFloatingText('PERFECT! +2', bird.x, bird.y - 60, '#48bb78');
+                            spawnParticles(bird.x, bird.y, 15, 'sparkle', '#48bb78', 1.5);
+                            triggerShake(5);
                         }
                         
                         document.getElementById('score-display').textContent = score; 
                         sfx.score();
                         
-                        // Level up setiap kelipatan 10
+                        // Level up setiap 10
                         if (score > 0 && score % 10 === 0) {
-                            if (gameSpeed < 7) gameSpeed += 0.5;
-                            difficulty += 0.5;
+                            if (gameSpeed < 4) gameSpeed += 0.3; // Naik lebih pelan
+                            difficulty += 0.3;
                             
+                            sfx.levelUp();
                             let banner = document.getElementById('combo-banner');
-                            banner.textContent = `LEVEL ${Math.floor(score/10)}! 🔥`;
+                            banner.textContent = `LEVEL ${Math.floor(score/10)}! 🚀`;
                             banner.classList.add('combo-show');
-                            setTimeout(() => banner.classList.remove('combo-show'), 1500);
+                            setTimeout(() => banner.classList.remove('combo-show'), 2000);
                             
-                            showFloatingText('SPEED UP!', canvas.width/2, 150, '#ff6b6b');
+                            showFloatingText('SPEED UP!', canvas.width/2, 120, '#ff6b6b');
+                            triggerShake(8);
                         }
                     }
-                    if (pipe.x + pipe.w < -50) pipes.splice(i, 1);
+                    if (pipe.x + pipe.w < -100) pipes.splice(i, 1);
                 }
             } 
             else if (gameState === 'GAMEOVER') {
@@ -830,37 +1329,50 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
-            pipes.forEach(pipe => pipe.draw(ctx));
+            
+            // Draw items behind pipes
             items.forEach(item => item.draw(ctx));
             
+            pipes.forEach(pipe => pipe.draw(ctx));
+            
             if (gameState !== 'START') bird.draw(ctx);
+            
             particles.forEach(p => p.draw(ctx));
 
             if (gameState === 'READY') {
                 ctx.save();
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; 
-                ctx.font = '900 24px Nunito, sans-serif'; 
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'; 
+                ctx.font = '900 26px Nunito, sans-serif'; 
                 ctx.textAlign = 'center';
-                ctx.shadowColor = 'rgba(0,0,0,0.4)'; 
-                ctx.shadowBlur = 10;
-                ctx.fillText('TAP UNTUK TERBANG', canvas.width / 2, canvas.height / 2 + 80);
-                ctx.font = '900 20px Nunito, sans-serif'; 
-                ctx.fillText('👆', canvas.width / 2, canvas.height / 2 + 115);
+                ctx.shadowColor = 'rgba(102, 126, 234, 0.5)'; 
+                ctx.shadowBlur = 20;
+                ctx.fillText('TAP UNTUK TERBANG', canvas.width / 2, canvas.height / 2 + 100);
+                
+                // Animated finger
+                const fingerY = canvas.height / 2 + 140 + Math.sin(frames * 0.1) * 5;
+                ctx.font = '900 32px Nunito';
+                ctx.fillText('👆', canvas.width / 2, fingerY);
                 ctx.restore();
             }
             
-            // Draw combo counter
+            // Streak counter
             if (consecutiveCoins > 1 && gameState === 'PLAYING') {
                 ctx.save();
-                ctx.fillStyle = '#ffd93d';
-                ctx.font = '900 20px Nunito';
+                ctx.fillStyle = consecutiveCoins >= 5 ? `hsl(${frames * 5 % 360}, 100%, 60%)` : '#ffd93d';
+                ctx.font = '900 22px Nunito';
                 ctx.textAlign = 'center';
-                ctx.fillText(`STREAK x${consecutiveCoins}`, bird.x, bird.y - 40);
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 5;
+                ctx.fillText(`STREAK x${consecutiveCoins}`, bird.x, bird.y - 50);
                 ctx.restore();
             }
         }
 
-        function loop() { update(); draw(); requestAnimationFrame(loop); }
+        function loop() { 
+            update(); 
+            draw(); 
+            requestAnimationFrame(loop); 
+        }
 
         // ==================== INPUT ====================
         function handleInput(e) {
@@ -874,7 +1386,7 @@
             } else if (gameState === 'PLAYING') {
                 bird.jump();
             } else if (gameState === 'GAMEOVER') {
-                if (frames - deathFrame > 40) resetGame();
+                if (frames - deathFrame > 50) resetGame();
             }
         }
 
