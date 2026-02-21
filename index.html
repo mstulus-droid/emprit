@@ -46,6 +46,20 @@
         .score-label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         .score-value { font-size: 32px; font-weight: 900; color: #ff6b6b; line-height: 1; margin-top: 2px; }
 
+        .multiplier-badge {
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 900;
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+        }
+        .multiplier-badge.show { opacity: 1; transform: translateY(0); }
+
         .medal {
             width: 50px; height: 50px; background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -53,6 +67,28 @@
             animation: float 3s ease-in-out infinite;
         }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pause-btn:hover { transform: scale(1.1); background: white; }
+        .pause-btn:active { transform: scale(0.95); }
 
         .combo-banner {
             position: absolute; top: 100px; background: linear-gradient(90deg, #ff6b6b, #ffd93d);
@@ -118,11 +154,57 @@
         .stat-value { font-size: 24px; font-weight: 900; color: #2d3748; }
         .stat-label { font-size: 11px; color: #a0aec0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 
+        .daily-progress {
+            width: 100%;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .progress-title { font-weight: 700; color: #2d3748; font-size: 14px; }
+        .progress-value { font-weight: 900; color: #667eea; font-size: 14px; }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;
             padding: 20px 60px; font-size: 22px; font-weight: 900; border-radius: 30px; cursor: pointer;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); transition: all 0.3s; font-family: inherit; 
             position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 1px;
+            touch-action: manipulation;
         }
         .btn-primary::before {
             content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
@@ -137,6 +219,7 @@
             background: white; color: #667eea; border: 3px solid #667eea; padding: 15px 40px; 
             font-size: 18px; font-weight: 700; border-radius: 30px; cursor: pointer; 
             transition: all 0.3s; font-family: inherit; margin-top: 15px; 
+            touch-action: manipulation;
         }
         .btn-secondary:hover { background: #667eea; color: white; transform: translateY(-2px); }
 
@@ -190,6 +273,22 @@
             100% { opacity: 0; transform: translateY(-100px) scale(1) rotate(0deg); } 
         }
 
+        .score-pop {
+            position: absolute;
+            font-weight: 900;
+            font-size: 24px;
+            color: #48bb78;
+            pointer-events: none;
+            animation: scorePopUp 1s ease-out forwards;
+            z-index: 40;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        @keyframes scorePopUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            50% { transform: translateY(-30px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1); }
+        }
+
         .streak-indicator {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 48px; font-weight: 900; color: #ffd93d;
@@ -202,17 +301,51 @@
             50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(10deg); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
         }
+
+        .flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 60;
+            transition: opacity 0.1s;
+        }
+
+        .pause-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .pause-menu.show { display: block; }
+        .pause-title { font-size: 32px; font-weight: 900; color: #2d3748; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div id="game-wrapper">
         <canvas id="game"></canvas>
         
+        <div class="flash-overlay" id="flash-overlay"></div>
+        
+        <button class="pause-btn" id="pause-btn">⏸️</button>
+        
         <div class="ui-layer">
             <div class="hud">
                 <div class="score-box" id="score-box">
                     <div class="score-label">Score</div>
                     <div class="score-value" id="score-display">0</div>
+                    <div class="multiplier-badge" id="multiplier-badge">x1.0</div>
                 </div>
                 <div class="medal" id="medal">🥉</div>
             </div>
@@ -239,6 +372,12 @@
             </div>
         </div>
 
+        <div class="pause-menu" id="pause-menu">
+            <div class="pause-title">⏸️ PAUSED</div>
+            <button class="btn-primary" id="resume-btn">LANJUTKAN</button>
+            <button class="btn-secondary" id="pause-menu-btn">MENU</button>
+        </div>
+
         <div id="start-screen" class="screen">
             <div class="logo">🐦</div>
             <h1>Sky Adventure</h1>
@@ -248,6 +387,16 @@
                 <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-value" id="best-score">0</div><div class="stat-label">Best</div></div>
                 <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-value" id="total-plays">0</div><div class="stat-label">Plays</div></div>
                 <div class="stat-card"><div class="stat-icon">🪙</div><div class="stat-value" id="total-coins">0</div><div class="stat-label">Coins</div></div>
+            </div>
+
+            <div class="daily-progress">
+                <div class="progress-header">
+                    <span class="progress-title">🎯 Daily Best Progress</span>
+                    <span class="progress-value" id="progress-text">0/50</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
             </div>
 
             <button class="btn-primary" id="start-btn">MAIN SEKARANG</button>
@@ -277,6 +426,23 @@
     </div>
 
     <script>
+        // ==================== UTILITY FUNCTIONS ====================
+        function lerp(start, end, t) {
+            return (1 - t) * start + t * end;
+        }
+
+        function lerpColor(color1, color2, t) {
+            return {
+                r: lerp(color1.r, color2.r, t),
+                g: lerp(color1.g, color2.g, t),
+                b: lerp(color1.b, color2.b, t)
+            };
+        }
+
+        function rgbToString(color) {
+            return `rgb(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)})`;
+        }
+
         // ==================== AUDIO SYSTEM ====================
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
@@ -350,7 +516,6 @@
             },
             levelUp: () => {
                 if (!audioCtx) return;
-                // Arpeggio major chord
                 [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                     const osc = audioCtx.createOscillator(); 
                     const gain = audioCtx.createGain();
@@ -361,8 +526,32 @@
                     osc.start(audioCtx.currentTime + i * 0.05);
                     osc.stop(audioCtx.currentTime + i * 0.05 + 0.3);
                 });
-            }
+            },
+            rain: null // Will be created dynamically
         };
+
+        // Rain ambient sound
+        function createRainSound() {
+            if (!audioCtx) return null;
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer;
+            whiteNoise.loop = true;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 800;
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.05;
+            whiteNoise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            return { source: whiteNoise, gain: gain };
+        }
 
         // ==================== GAME SETUP ====================
         const canvas = document.getElementById('game');
@@ -377,23 +566,70 @@
         window.addEventListener('resize', resizeCanvas);
 
         let gameState = 'START';
+        let isPaused = false;
         let frames = 0, deathFrame = 0;
         let score = 0, coins = 0, combo = 0, maxCombo = 0, perfectPasses = 0; 
-        let gameSpeed = 1.2; // Start lebih pelan (diperbarui)
-        let difficulty = 0.5; // Kesulitan dimulai dari level rendah (diperbarui)
+        let gameSpeed = 1.2;
+        let difficulty = 0.5;
         let groundOffset = 0;
+        let scoreMultiplier = 1.0;
+        let survivalTime = 0; // Frames survived
         
-        const POWERUP_DURATION = 600; // 10 detik dalam 60fps
+        const POWERUP_DURATION = 600;
         
+        // Time of Day Colors (RGB)
+        const timeColors = {
+            dawn: { r: 255, g: 183, b: 178 },      // Pinkish dawn
+            morning: { r: 135, g: 206, b: 235 },   // Sky blue
+            noon: { r: 100, g: 181, b: 246 },      // Bright blue
+            afternoon: { r: 255, g: 218, b: 185 }, // Warm afternoon
+            sunset: { r: 255, g: 160, b: 122 },    // Orange sunset
+            dusk: { r: 147, g: 112, b: 219 },      // Purple dusk
+            night: { r: 25, g: 25, b: 112 },       // Dark blue night
+            midnight: { r: 10, g: 10, b: 40 }      // Deep midnight
+        };
+        
+        let currentSkyColor = { ...timeColors.morning };
+        let targetSkyColor = { ...timeColors.morning };
+        let timeTransitionSpeed = 0.005;
+
+        // Weather System
+        let weatherState = 'clear'; // clear, rain, storm
+        let weatherTimer = 0;
+        let rainIntensity = 0;
+        let stormFlashTimer = 0;
+        let windFluctuation = 0;
+        let rainSound = null;
+
         const stats = { 
             bestScore: parseInt(localStorage.getItem('skyBestScore')) || 0, 
             totalPlays: parseInt(localStorage.getItem('skyTotalPlays')) || 0, 
-            totalCoins: parseInt(localStorage.getItem('skyTotalCoins')) || 0 
+            totalCoins: parseInt(localStorage.getItem('skyTotalCoins')) || 0,
+            dailyBest: parseInt(localStorage.getItem('skyDailyBest')) || 0,
+            lastPlayDate: localStorage.getItem('skyLastPlayDate') || ''
         };
-        
+
+        // Check daily reset
+        const today = new Date().toDateString();
+        if (stats.lastPlayDate !== today) {
+            stats.dailyBest = 0;
+            stats.lastPlayDate = today;
+            localStorage.setItem('skyDailyBest', '0');
+            localStorage.setItem('skyLastPlayDate', today);
+        }
+
+        // Update UI
         document.getElementById('best-score').textContent = stats.bestScore; 
         document.getElementById('total-plays').textContent = stats.totalPlays; 
         document.getElementById('total-coins').textContent = stats.totalCoins;
+        
+        // Daily progress
+        const dailyMilestones = [10, 25, 50, 100, 200];
+        const nextMilestone = dailyMilestones.find(m => stats.dailyBest < m) || dailyMilestones[dailyMilestones.length - 1];
+        const prevMilestone = dailyMilestones[dailyMilestones.indexOf(nextMilestone) - 1] || 0;
+        const progressPercent = Math.min(100, ((stats.dailyBest - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+        document.getElementById('progress-text').textContent = `${stats.dailyBest}/${nextMilestone}`;
+        document.getElementById('progress-fill').style.width = `${progressPercent}%`;
 
         // ==================== ENHANCED PARTICLE SYSTEM ====================
         let particles = [];
@@ -417,7 +653,7 @@
                     this.size = Math.random() * 6 + 3;
                 } else if (type === 'sparkle') { 
                     this.decay = 0.025; 
-                    this.gravity = -0.1; // Naik ke atas
+                    this.gravity = -0.1;
                     this.size = Math.random() * 3 + 1;
                 } else if (type === 'crash') { 
                     this.vx *= 2; this.vy *= 2; 
@@ -458,7 +694,6 @@
                     ctx.ellipse(0, 0, this.size, this.size/2, 0, 0, Math.PI * 2); 
                     ctx.fill();
                 } else if (this.type === 'sparkle') {
-                    // Draw star shape
                     ctx.fillStyle = this.color;
                     ctx.beginPath();
                     for (let i = 0; i < 5; i++) {
@@ -492,6 +727,50 @@
             for (let i = 0; i < count; i++) particles.push(new Particle(x, y, type, color, speed)); 
         }
 
+        // Rain Particle Class
+        class RainDrop {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                this.x = Math.random() * (canvas.width + 200) - 100;
+                this.y = Math.random() * -canvas.height;
+                this.speed = 15 + Math.random() * 10;
+                this.length = 10 + Math.random() * 20;
+                this.opacity = 0.3 + Math.random() * 0.4;
+            }
+            
+            update() {
+                this.y += this.speed * (weatherState === 'storm' ? 1.5 : 1);
+                this.x += 2; // Slight wind
+                
+                if (this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            
+            draw(ctx) {
+                ctx.save();
+                ctx.strokeStyle = `rgba(174, 194, 224, ${this.opacity})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + 2, this.y + this.length);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        let rainDrops = [];
+        function initRain() {
+            rainDrops = [];
+            const count = weatherState === 'storm' ? 200 : 100;
+            for (let i = 0; i < count; i++) {
+                rainDrops.push(new RainDrop());
+            }
+        }
+
         // ==================== SCREEN SHAKE EFFECT ====================
         let shakeIntensity = 0;
         function triggerShake(intensity) {
@@ -521,6 +800,7 @@
             maxTimers: { shield: 0, magnet: 0, slowmo: 0 },
             invulnerable: 0,
             rainbowHue: 0,
+            cameraLean: 0, // Camera lean based on velocity
             
             reset() {
                 this.y = canvas.height / 2; 
@@ -532,13 +812,18 @@
                 this.maxTimers = {shield: 0, magnet: 0, slowmo: 0};
                 this.invulnerable = 0;
                 this.rainbowHue = 0;
+                this.cameraLean = 0;
                 this.updatePowerupUI();
             },
             
             update() {
                 this.velocity += this.gravity; 
                 this.y += this.velocity;
-                this.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, this.velocity * 0.08));
+                
+                // Camera lean - condong ke arah kecepatan
+                const targetLean = this.velocity * 0.15;
+                this.cameraLean = lerp(this.cameraLean, targetLean, 0.1);
+                this.rotation = Math.min(Math.PI / 3, Math.max(-Math.PI / 3, this.cameraLean));
                 
                 // Rainbow trail saat streak tinggi atau powerup aktif
                 if (frames % 3 === 0 && gameState === 'PLAYING') {
@@ -583,7 +868,6 @@
                 document.getElementById(`badge-${type}`).classList.add('active');
                 sfx.powerup();
                 
-                // Flash effect
                 const flash = document.createElement('div');
                 flash.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:' + 
                     (type === 'shield' ? '#4299e1' : type === 'magnet' ? '#ecc94b' : '#9f7aea') + 
@@ -600,21 +884,17 @@
                 this.powerupTimers[type] = 0;
                 this.maxTimers[type] = 0;
                 document.getElementById(`badge-${type}`).classList.remove('active');
-                
-                // Reset UI
                 document.getElementById(`timer-${type}`).style.width = '100%';
                 document.getElementById(`ring-${type}`).style.transform = 'rotate(0deg)';
             },
             
             breakShield() {
                 if (!this.powerups.shield) return;
-                
                 spawnParticles(this.x, this.y, 25, 'shieldBreak', '#4299e1', 2);
                 sfx.shieldBreak();
                 triggerShake(15);
-                
                 this.deactivatePowerup('shield');
-                this.invulnerable = 90; // 1.5 detik kebal
+                this.invulnerable = 90;
             },
             
             updatePowerupUI() {
@@ -625,10 +905,8 @@
                     if (this.powerups[type] && this.maxTimers[type] > 0) {
                         const percentage = (this.powerupTimers[type] / this.maxTimers[type]);
                         timerBar.style.width = (percentage * 100) + '%';
-                        // Rotate ring based on remaining time (360 deg = full)
                         timerRing.style.transform = `rotate(${360 - (percentage * 360)}deg)`;
                         
-                        // Warning color saat hampir habis
                         if (percentage < 0.2) {
                             timerBar.style.background = '#ff6b6b';
                             timerRing.style.borderTopColor = '#ff6b6b';
@@ -644,7 +922,6 @@
                 this.velocity = this.jumpPower; 
                 sfx.jump();
                 spawnParticles(this.x - 10, this.y + 10, 5, 'feather', '#ffffff');
-                // DIHAPUS: Efek squash animasi / layarnya goyang (screen shake) agar lebih nyaman ditap.
             },
             
             draw(ctx) {
@@ -665,8 +942,7 @@
                 ctx.translate(this.x, this.y); 
                 ctx.rotate(this.rotation);
                 
-                // ==================== POWERUP VISUAL EFFECTS ====================
-                
+                // Powerup visual effects
                 if (this.powerups.shield) {
                     const remaining = this.powerupTimers.shield;
                     const max = this.maxTimers.shield || POWERUP_DURATION;
@@ -803,10 +1079,9 @@
                 this.x = canvas.width; 
                 this.w = 60; 
                 
-                // Gap reduction bertahap perlahan
                 const minGap = 160;
                 const maxGap = 210;
-                const gapReduction = Math.min(difficulty * 10, 50); // Maksimal menyusut 50px
+                const gapReduction = Math.min(difficulty * 10, 50);
                 this.gap = Math.max(minGap, maxGap - gapReduction);
                 
                 this.minHeight = 80;
@@ -822,25 +1097,29 @@
                 this.passed = false; 
                 this.scored = false;
 
-                // Logika Pipa Bergerak jika skor > 50
-                this.isMoving = (score >= 50 && Math.random() > 0.4); // 60% Chance buat gerak
+                this.isMoving = (score >= 50 && Math.random() > 0.4);
                 this.moveDirection = Math.random() > 0.5 ? 1 : -1;
                 this.moveSpeed = 0.5 + Math.random() * 0.8; 
-                this.limitY = 60; // Max pergerakan ke atas atau bawah
+                this.limitY = 60;
                 this.baseTopHeight = this.topHeight;
             }
             
             update(speed) { 
-                this.x -= speed; 
+                // Apply wind fluctuation during storm
+                let adjustedSpeed = speed;
+                if (weatherState === 'storm') {
+                    adjustedSpeed += windFluctuation;
+                }
+                
+                this.x -= adjustedSpeed; 
                 if (this.isMoving) {
                     this.topHeight += this.moveSpeed * this.moveDirection;
-                    // Kalau mentok batas limit, tukar arah pergerakan
                     if (this.topHeight > this.baseTopHeight + this.limitY || 
                         this.topHeight < this.baseTopHeight - this.limitY ||
                         this.topHeight < this.minHeight) {
                         this.moveDirection *= -1;
                     }
-                    this.bottomY = this.topHeight + this.gap; // Sesuaikan yang bawah ngikut
+                    this.bottomY = this.topHeight + this.gap;
                 }
             }
             
@@ -857,25 +1136,20 @@
                 const capHeight = 25;
                 const capExtraWidth = 8;
 
-                // Pipa atas
                 ctx.fillRect(this.x, -10, this.w, this.topHeight - capHeight + 10);
                 ctx.strokeRect(this.x, -10, this.w, this.topHeight - capHeight + 10);
                 
-                // Cap atas
                 ctx.fillRect(this.x - (capExtraWidth/2), this.topHeight - capHeight, this.w + capExtraWidth, capHeight);
                 ctx.strokeRect(this.x - (capExtraWidth/2), this.topHeight - capHeight, this.w + capExtraWidth, capHeight);
                 
-                // Highlight cap
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
                 ctx.fillRect(this.x - (capExtraWidth/2) + 3, this.topHeight - capHeight + 3, (this.w + capExtraWidth) / 2 - 3, capHeight - 6);
 
-                // Pipa bawah
                 const bottomBodyHeight = canvas.height - this.bottomY - 80;
                 ctx.fillStyle = grad;
                 ctx.fillRect(this.x - (capExtraWidth/2), this.bottomY, this.w + capExtraWidth, capHeight);
                 ctx.strokeRect(this.x - (capExtraWidth/2), this.bottomY, this.w + capExtraWidth, capHeight);
                 
-                // Highlight cap bawah
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
                 ctx.fillRect(this.x - (capExtraWidth/2) + 3, this.bottomY + 3, (this.w + capExtraWidth) / 2 - 3, capHeight - 6);
                 
@@ -942,7 +1216,6 @@
                 ctx.save(); 
                 ctx.translate(this.x, this.y);
                 
-                // Shadow
                 ctx.fillStyle = 'rgba(0,0,0,0.2)';
                 ctx.beginPath();
                 ctx.ellipse(0, 20, this.radius, this.radius/3, 0, 0, Math.PI*2);
@@ -993,39 +1266,63 @@
             }
         }
 
-        // ==================== DYNAMIC WEATHER BACKGROUND ====================
-        function drawBackground() {
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            let grassTop, grassBottom, grassDark;
+        // ==================== DYNAMIC TIME OF DAY SYSTEM ====================
+        function updateTimeOfDay() {
+            // Determine target color based on score (simulating time progression)
+            let targetKey = 'morning';
+            if (score < 5) targetKey = 'dawn';
+            else if (score < 15) targetKey = 'morning';
+            else if (score < 25) targetKey = 'noon';
+            else if (score < 35) targetKey = 'afternoon';
+            else if (score < 45) targetKey = 'sunset';
+            else if (score < 55) targetKey = 'dusk';
+            else if (score < 70) targetKey = 'night';
+            else targetKey = 'midnight';
+            
+            targetSkyColor = timeColors[targetKey];
+            
+            // Smoothly interpolate current color to target
+            currentSkyColor = lerpColor(currentSkyColor, targetSkyColor, timeTransitionSpeed);
+        }
 
-            if (score < 20) {
-                // Siang Hari Cerah
-                skyGrad.addColorStop(0, '#63b3ed'); 
-                skyGrad.addColorStop(0.5, '#90cdf4'); 
-                skyGrad.addColorStop(1, '#bee3f8');
-                grassTop = '#48bb78'; grassBottom = '#38a169'; grassDark = '#2f855a';
-            } else if (score < 40) {
-                // Sore Hari (Sunset)
-                skyGrad.addColorStop(0, '#ed8936'); 
-                skyGrad.addColorStop(0.5, '#f6ad55'); 
-                skyGrad.addColorStop(1, '#fbd38d');
-                grassTop = '#38a169'; grassBottom = '#276749'; grassDark = '#22543d';
-            } else {
-                // Malam Hari
-                skyGrad.addColorStop(0, '#1a202c'); 
-                skyGrad.addColorStop(0.5, '#2d3748'); 
-                skyGrad.addColorStop(1, '#4a5568');
-                grassTop = '#276749'; grassBottom = '#1c4532'; grassDark = '#173627';
-            }
+        function drawBackground() {
+            updateTimeOfDay();
+            
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGrad.addColorStop(0, rgbToString(currentSkyColor));
+            
+            // Create lighter version for bottom
+            const lighterColor = {
+                r: Math.min(255, currentSkyColor.r + 40),
+                g: Math.min(255, currentSkyColor.g + 40),
+                b: Math.min(255, currentSkyColor.b + 40)
+            };
+            skyGrad.addColorStop(0.5, rgbToString(lighterColor));
+            skyGrad.addColorStop(1, rgbToString({ 
+                r: Math.min(255, currentSkyColor.r + 80),
+                g: Math.min(255, currentSkyColor.g + 80),
+                b: Math.min(255, currentSkyColor.b + 80)
+            }));
             
             ctx.fillStyle = skyGrad; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Awan menyesuaikan opacity kalau malam
-            ctx.globalAlpha = (score >= 40) ? 0.3 : 1;
+            // Adjust cloud opacity based on time
+            const isNight = score >= 45;
+            ctx.globalAlpha = isNight ? 0.3 : 0.8;
             clouds.forEach(cloud => cloud.draw(ctx));
             ctx.globalAlpha = 1;
 
+            // Dynamic grass colors based on time
+            let grassTop, grassBottom, grassDark;
+            if (score < 25) {
+                grassTop = '#48bb78'; grassBottom = '#38a169'; grassDark = '#2f855a';
+            } else if (score < 55) {
+                grassTop = '#38a169'; grassBottom = '#276749'; grassDark = '#22543d';
+            } else {
+                grassTop = '#276749'; grassBottom = '#1c4532'; grassDark = '#173627';
+            }
+            
             const floorY = canvas.height - 80;
             const grassGrad = ctx.createLinearGradient(0, floorY, 0, canvas.height);
             grassGrad.addColorStop(0, grassTop);
@@ -1044,6 +1341,73 @@
             ctx.fillRect(0, floorY, canvas.width, 6);
         }
 
+        // ==================== WEATHER SYSTEM ====================
+        function updateWeather() {
+            weatherTimer++;
+            
+            // Random weather changes
+            if (weatherTimer > 1800) { // Every ~30 seconds
+                weatherTimer = 0;
+                const rand = Math.random();
+                if (rand < 0.6) {
+                    weatherState = 'clear';
+                    if (rainSound) {
+                        rainSound.gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+                        setTimeout(() => { if (rainSound) rainSound.source.stop(); rainSound = null; }, 1000);
+                    }
+                } else if (rand < 0.85) {
+                    weatherState = 'rain';
+                    initRain();
+                    if (!rainSound && audioCtx) {
+                        rainSound = createRainSound();
+                        if (rainSound) rainSound.source.start();
+                    }
+                } else {
+                    weatherState = 'storm';
+                    initRain();
+                    if (!rainSound && audioCtx) {
+                        rainSound = createRainSound();
+                        if (rainSound) rainSound.source.start();
+                    }
+                }
+            }
+            
+            // Storm effects
+            if (weatherState === 'storm') {
+                windFluctuation = Math.sin(frames * 0.05) * 0.5;
+                
+                // Random lightning
+                if (Math.random() < 0.005) {
+                    triggerLightning();
+                }
+            } else {
+                windFluctuation = 0;
+            }
+            
+            // Update rain
+            if (weatherState !== 'clear') {
+                rainDrops.forEach(drop => drop.update());
+            }
+        }
+
+        function triggerLightning() {
+            const flash = document.getElementById('flash-overlay');
+            flash.style.opacity = '0.8';
+            setTimeout(() => flash.style.opacity = '0', 100);
+            setTimeout(() => {
+                flash.style.opacity = '0.4';
+                setTimeout(() => flash.style.opacity = '0', 50);
+            }, 150);
+            
+            triggerShake(10);
+        }
+
+        function drawWeather() {
+            if (weatherState !== 'clear') {
+                rainDrops.forEach(drop => drop.draw(ctx));
+            }
+        }
+
         // ==================== GAME LOGIC ====================
         let spawnTimer = 0;
         let consecutiveCoins = 0;
@@ -1060,18 +1424,30 @@
             combo = 0; 
             maxCombo = 0; 
             perfectPasses = 0; 
-            gameSpeed = 1.2; // Start awal lebih santai (diperbarui)
-            difficulty = 0.5; // Level kesusahan direndahkan (diperbarui)
+            gameSpeed = 1.2;
+            difficulty = 0.5;
             spawnTimer = 0; 
-            frames = 0; 
+            frames = 0;
+            survivalTime = 0;
             consecutiveCoins = 0;
             lastPipeX = 0;
             shakeIntensity = 0;
+            scoreMultiplier = 1.0;
+            weatherState = 'clear';
+            weatherTimer = 0;
+            currentSkyColor = { ...timeColors.morning };
+            
+            // Reset rain sound
+            if (rainSound) {
+                rainSound.source.stop();
+                rainSound = null;
+            }
             
             document.getElementById('score-display').textContent = '0'; 
             document.getElementById('medal').textContent = '🥉';
             document.getElementById('combo-banner').classList.remove('combo-show');
             document.getElementById('score-box').classList.remove('pulse');
+            document.getElementById('multiplier-badge').classList.remove('show');
             
             ['shield', 'magnet', 'slowmo'].forEach(type => {
                 document.getElementById(`badge-${type}`).classList.remove('active');
@@ -1080,8 +1456,10 @@
             });
             
             gameState = 'READY';
+            isPaused = false;
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('pause-menu').classList.remove('show');
         }
 
         function showFloatingText(text, x, y, color) {
@@ -1095,12 +1473,37 @@
             setTimeout(() => el.remove(), 1200);
         }
 
+        function showScorePop(points, x, y) {
+            const el = document.createElement('div');
+            el.className = 'score-pop';
+            el.textContent = `+${points}`;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            gameWrapper.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
         function showStreak(count) {
             const el = document.getElementById('streak-indicator');
             el.textContent = `🔥 x${count}`;
             el.classList.remove('streak-show');
-            void el.offsetWidth; // Trigger reflow
+            void el.offsetWidth;
             el.classList.add('streak-show');
+        }
+
+        function updateScoreMultiplier() {
+            // Multiplier increases based on survival time and score
+            const timeBonus = Math.floor(survivalTime / 1800) * 0.1; // +0.1 every 30 seconds
+            const scoreBonus = Math.floor(score / 20) * 0.1; // +0.1 every 20 points
+            scoreMultiplier = 1.0 + timeBonus + scoreBonus;
+            
+            const badge = document.getElementById('multiplier-badge');
+            if (scoreMultiplier > 1.0) {
+                badge.textContent = `x${scoreMultiplier.toFixed(1)}`;
+                badge.classList.add('show');
+            } else {
+                badge.classList.remove('show');
+            }
         }
 
         function gameOver() {
@@ -1112,7 +1515,20 @@
             spawnParticles(bird.x, bird.y, 30, 'crash', '#ff6b6b', 2);
             triggerShake(20);
             
+            // Stop rain sound
+            if (rainSound) {
+                rainSound.gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                setTimeout(() => { if (rainSound) rainSound.source.stop(); rainSound = null; }, 500);
+            }
+            
             stats.totalPlays++;
+            
+            // Update daily best
+            if (score > stats.dailyBest) {
+                stats.dailyBest = score;
+                localStorage.setItem('skyDailyBest', stats.dailyBest);
+            }
+            
             if (score > stats.bestScore) { 
                 stats.bestScore = score; 
                 document.getElementById('new-record').classList.add('show'); 
@@ -1134,12 +1550,37 @@
                 document.getElementById('final-coins').textContent = coins;
                 document.getElementById('final-perfect').textContent = perfectPasses;
                 document.getElementById('game-over-screen').classList.remove('hidden');
+                
+                // Update daily progress in game over screen
+                const progressPercent = Math.min(100, ((stats.dailyBest - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+                document.getElementById('progress-text').textContent = `${stats.dailyBest}/${nextMilestone}`;
+                document.getElementById('progress-fill').style.width = `${progressPercent}%`;
             }, 800);
         }
 
+        function togglePause() {
+            if (gameState !== 'PLAYING' && !isPaused) return;
+            
+            isPaused = !isPaused;
+            const pauseMenu = document.getElementById('pause-menu');
+            
+            if (isPaused) {
+                pauseMenu.classList.add('show');
+                if (rainSound && rainSound.gain) rainSound.gain.gain.value = 0.02;
+            } else {
+                pauseMenu.classList.remove('show');
+                if (rainSound && rainSound.gain) rainSound.gain.value = 0.05;
+            }
+        }
+
         function update() {
+            if (isPaused) return;
+            
             frames++;
+            survivalTime++;
             updateShake();
+            updateWeather();
+            updateScoreMultiplier();
             
             if (gameState === 'READY') {
                 bird.y = canvas.height / 2 + Math.sin(frames * 0.08) * 15;
@@ -1157,7 +1598,6 @@
                 clouds = clouds.filter(c => c.x > -100);
 
                 spawnTimer += (bird.powerups.slowmo ? 0.4 : 1);
-                // Menyesuaikan spanw rate dengan tingkat kesusahan
                 const spawnRate = Math.max(90, 160 - (difficulty * 15));
                 
                 if (spawnTimer > spawnRate) { 
@@ -1249,7 +1689,14 @@
                     
                     if (!pipe.scored && bird.x > pipe.x + pipe.w) {
                         pipe.scored = true; 
-                        score++;
+                        
+                        // Apply score multiplier
+                        const basePoints = 1;
+                        const bonusPoints = Math.floor(basePoints * scoreMultiplier);
+                        score += bonusPoints;
+                        
+                        // Show score pop at bird position
+                        showScorePop(bonusPoints, bird.x, bird.y - 40);
                         
                         const scoreBox = document.getElementById('score-box');
                         scoreBox.classList.add('pulse');
@@ -1259,28 +1706,22 @@
                         const distFromCenter = Math.abs(bird.y - centerGap);
                         if (distFromCenter < 40) {
                             perfectPasses++;
-                            score += 2; 
-                            showFloatingText('PERFECT! +2', bird.x, bird.y - 60, '#48bb78');
+                            const perfectBonus = Math.floor(2 * scoreMultiplier);
+                            score += perfectBonus; 
+                            showFloatingText(`PERFECT! +${perfectBonus}`, bird.x, bird.y - 80, '#48bb78');
                             spawnParticles(bird.x, bird.y, 15, 'sparkle', '#48bb78', 1.5);
                         }
                         
                         document.getElementById('score-display').textContent = score; 
                         sfx.score();
                         
-                        // Level up bertahap
                         if (score > 0 && score % 10 === 0) {
-                            if (gameSpeed < 3.8) gameSpeed += 0.2; // Speed naik dikit demi sedikit
-                            difficulty += 0.2; // Kesulitan pipa pelan pelan naik
+                            if (gameSpeed < 3.8) gameSpeed += 0.2;
+                            difficulty += 0.2;
                             
                             sfx.levelUp();
                             let banner = document.getElementById('combo-banner');
-                            
-                            // Pesan khusus jika cuaca/event baru dimulai
-                            if (score === 20) banner.textContent = `SUNSET ARRIVES! 🌅`;
-                            else if (score === 40) banner.textContent = `NIGHT FALLS! 🌙`;
-                            else if (score === 50) banner.textContent = `MOVING PIPES! ⚙️`;
-                            else banner.textContent = `LEVEL UP! 🚀`;
-                            
+                            banner.textContent = `LEVEL UP! 🚀 x${scoreMultiplier.toFixed(1)}`;
                             banner.classList.add('combo-show');
                             setTimeout(() => banner.classList.remove('combo-show'), 2000);
                             
@@ -1301,6 +1742,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
+            drawWeather();
             
             items.forEach(item => item.draw(ctx));
             pipes.forEach(pipe => pipe.draw(ctx));
@@ -1308,11 +1750,11 @@
             if (gameState !== 'START') bird.draw(ctx);
             particles.forEach(p => p.draw(ctx));
 
-            // ==================== EFEK MALAM (FLASHLIGHT) ====================
-            if (score >= 40 && gameState !== 'START') {
+            // Night flashlight effect
+            if (score >= 45 && gameState !== 'START') {
                 ctx.save();
-                const opacity = Math.min(0.95, 0.6 + (score - 40) * 0.015); // Makin gelap
-                const radius = Math.max(80, 250 - (score - 40) * 1.5); // Senter makin mengecil
+                const opacity = Math.min(0.95, 0.6 + (score - 45) * 0.015);
+                const radius = Math.max(80, 250 - (score - 45) * 1.5);
                 
                 const gradient = ctx.createRadialGradient(bird.x, bird.y, radius * 0.3, bird.x, bird.y, radius);
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
@@ -1356,7 +1798,7 @@
             requestAnimationFrame(loop); 
         }
 
-        // ==================== INPUT ====================
+        // ==================== INPUT HANDLING ====================
         function handleInput(e) {
             if (e.type === 'keydown' && e.code !== 'Space') return;
             if (e.type === 'touchstart') e.preventDefault();
@@ -1372,21 +1814,90 @@
             }
         }
 
+        // Prevent default on all interactive elements
+        document.querySelectorAll('button, .pause-btn').forEach(btn => {
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                btn.click();
+            }, { passive: false });
+        });
+
         window.addEventListener('keydown', handleInput);
         canvas.addEventListener('mousedown', handleInput);
         canvas.addEventListener('touchstart', handleInput, {passive: false});
         
+        // Prevent double-tap zoom
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
         document.getElementById('start-btn').addEventListener('click', (e) => {
             e.stopPropagation();
+            e.preventDefault();
             initAudio(); 
             resetGame();
         });
         
-        document.getElementById('restart-btn').addEventListener('click', resetGame);
-        document.getElementById('menu-btn').addEventListener('click', () => {
+        document.getElementById('restart-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            resetGame();
+        });
+        
+        document.getElementById('menu-btn').addEventListener('click', (e) => {
+            e.preventDefault();
             document.getElementById('game-over-screen').classList.add('hidden'); 
             document.getElementById('start-screen').classList.remove('hidden'); 
             gameState = 'START';
+        });
+
+        document.getElementById('pause-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePause();
+        });
+
+        document.getElementById('resume-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            togglePause();
+        });
+
+        document.getElementById('pause-menu-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            isPaused = false;
+            document.getElementById('pause-menu').classList.remove('show');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            gameState = 'START';
+            
+            // Stop rain sound
+            if (rainSound) {
+                rainSound.source.stop();
+                rainSound = null;
+            }
+        });
+
+        // Visibility API for focus loss
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameState === 'PLAYING' && !isPaused) {
+                togglePause();
+            }
         });
 
         loop();
