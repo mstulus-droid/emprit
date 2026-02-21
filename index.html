@@ -379,8 +379,8 @@
         let gameState = 'START';
         let frames = 0, deathFrame = 0;
         let score = 0, coins = 0, combo = 0, maxCombo = 0, perfectPasses = 0; 
-        let gameSpeed = 1.5; // Lebih lambat di awal
-        let difficulty = 1; 
+        let gameSpeed = 1.2; // Start lebih pelan (diperbarui)
+        let difficulty = 0.5; // Kesulitan dimulai dari level rendah (diperbarui)
         let groundOffset = 0;
         
         const POWERUP_DURATION = 600; // 10 detik dalam 60fps
@@ -514,7 +514,7 @@
         // ==================== ENHANCED BIRD ====================
         const bird = {
             x: 80, y: 0, velocity: 0, radius: 16, 
-            gravity: 0.25, jumpPower: -5.2, // Jump lebih kuat untuk awal yang lebih mudah
+            gravity: 0.25, jumpPower: -5.2,
             rotation: 0, trail: [], 
             powerups: { shield: false, magnet: false, slowmo: false }, 
             powerupTimers: { shield: 0, magnet: 0, slowmo: 0 }, 
@@ -644,10 +644,7 @@
                 this.velocity = this.jumpPower; 
                 sfx.jump();
                 spawnParticles(this.x - 10, this.y + 10, 5, 'feather', '#ffffff');
-                
-                // Squash animation
-                gameWrapper.style.transform = 'scale(1.02, 0.98)';
-                setTimeout(() => gameWrapper.style.transform = 'scale(1, 1)', 100);
+                // DIHAPUS: Efek squash animasi / layarnya goyang (screen shake) agar lebih nyaman ditap.
             },
             
             draw(ctx) {
@@ -670,13 +667,11 @@
                 
                 // ==================== POWERUP VISUAL EFFECTS ====================
                 
-                // Shield dengan timer visual
                 if (this.powerups.shield) {
                     const remaining = this.powerupTimers.shield;
                     const max = this.maxTimers.shield || POWERUP_DURATION;
                     const progress = remaining / max;
                     
-                    // Outer glow
                     ctx.save();
                     ctx.globalAlpha = 0.3 + Math.sin(frames * 0.1) * 0.1;
                     ctx.strokeStyle = '#4299e1';
@@ -688,7 +683,6 @@
                     ctx.stroke();
                     ctx.restore();
                     
-                    // Timer arc
                     ctx.beginPath();
                     ctx.strokeStyle = progress < 0.2 ? '#ff6b6b' : '#4299e1';
                     ctx.lineWidth = 4;
@@ -698,7 +692,6 @@
                     ctx.arc(0, 0, this.radius + 15, startAngle, endAngle);
                     ctx.stroke();
                     
-                    // Inner fill
                     ctx.save();
                     ctx.globalAlpha = 0.1;
                     ctx.fillStyle = '#4299e1';
@@ -708,7 +701,6 @@
                     ctx.restore();
                 }
                 
-                // Magnet effect - area tarikan
                 if (this.powerups.magnet) {
                     const pulse = (Math.sin(frames * 0.1) + 1) / 2;
                     ctx.save();
@@ -720,7 +712,6 @@
                     ctx.arc(0, 0, 150, 0, Math.PI * 2);
                     ctx.stroke();
                     
-                    // Rotating rings
                     ctx.globalAlpha = 0.2;
                     ctx.beginPath();
                     ctx.arc(0, 0, 100 + pulse * 20, frames * 0.02, frames * 0.02 + Math.PI * 1.5);
@@ -728,7 +719,6 @@
                     ctx.restore();
                 }
                 
-                // Slowmo effect - blur/ghost
                 if (this.powerups.slowmo) {
                     ctx.save();
                     ctx.globalAlpha = 0.3;
@@ -744,7 +734,6 @@
                 // Bird body dengan gradient dinamis
                 const bodyGrad = ctx.createRadialGradient(-5, -5, 0, 0, 0, this.radius);
                 if (consecutiveCoins >= 5) {
-                    // Rainbow mode
                     const hue = (frames * 2) % 360;
                     bodyGrad.addColorStop(0, `hsl(${hue}, 100%, 70%)`);
                     bodyGrad.addColorStop(0.7, `hsl(${hue}, 100%, 60%)`);
@@ -760,7 +749,7 @@
                 ctx.arc(0, 0, this.radius, 0, Math.PI * 2); 
                 ctx.fill();
                 
-                // Eye dengan blink animation
+                // Eye
                 ctx.fillStyle = 'white'; 
                 ctx.beginPath(); 
                 ctx.arc(6, -4, 7, 0, Math.PI * 2); 
@@ -781,7 +770,7 @@
                 ctx.closePath(); 
                 ctx.fill();
                 
-                // Wing dengan flap animation
+                // Wing
                 const flap = Math.sin(frames * 0.3) * 0.4;
                 ctx.save(); 
                 ctx.translate(-5, 5); 
@@ -805,25 +794,24 @@
             }
         };
 
-        // ==================== FIXED PIPE SYSTEM ====================
+        // ==================== MOVING PIPE SYSTEM ====================
         let pipes = []; 
         let items = [];
         
         class Pipe {
             constructor() {
                 this.x = canvas.width; 
-                this.w = 60; // Sedikit lebih kecil
+                this.w = 60; 
                 
-                // FIX: Gap lebih besar di awal, bertahap menyempit
-                const minGap = 160; // Gap minimum lebih besar
-                const maxGap = 200; // Gap maksimum
-                const gapReduction = Math.min(difficulty * 3, 40); // Berkurang perlahan
+                // Gap reduction bertahap perlahan
+                const minGap = 160;
+                const maxGap = 210;
+                const gapReduction = Math.min(difficulty * 10, 50); // Maksimal menyusut 50px
                 this.gap = Math.max(minGap, maxGap - gapReduction);
                 
-                this.minHeight = 80; // Minimum height lebih besar agar tidak terlalu pendek
+                this.minHeight = 80;
                 const availableSpace = canvas.height - 80 - this.gap - (this.minHeight * 2);
                 
-                // FIX: Pastikan tidak negatif
                 if (availableSpace > 0) {
                     this.topHeight = Math.floor(Math.random() * availableSpace) + this.minHeight;
                 } else {
@@ -833,16 +821,33 @@
                 this.bottomY = this.topHeight + this.gap;
                 this.passed = false; 
                 this.scored = false;
-                this.highlighted = false;
+
+                // Logika Pipa Bergerak jika skor > 50
+                this.isMoving = (score >= 50 && Math.random() > 0.4); // 60% Chance buat gerak
+                this.moveDirection = Math.random() > 0.5 ? 1 : -1;
+                this.moveSpeed = 0.5 + Math.random() * 0.8; 
+                this.limitY = 60; // Max pergerakan ke atas atau bawah
+                this.baseTopHeight = this.topHeight;
             }
             
-            update(speed) { this.x -= speed; }
+            update(speed) { 
+                this.x -= speed; 
+                if (this.isMoving) {
+                    this.topHeight += this.moveSpeed * this.moveDirection;
+                    // Kalau mentok batas limit, tukar arah pergerakan
+                    if (this.topHeight > this.baseTopHeight + this.limitY || 
+                        this.topHeight < this.baseTopHeight - this.limitY ||
+                        this.topHeight < this.minHeight) {
+                        this.moveDirection *= -1;
+                    }
+                    this.bottomY = this.topHeight + this.gap; // Sesuaikan yang bawah ngikut
+                }
+            }
             
             draw(ctx) {
-                // Gradient 3D
                 const grad = ctx.createLinearGradient(this.x, 0, this.x + this.w, 0);
                 grad.addColorStop(0, '#68d391');
-                grad.addColorStop(0.4, '#9ae6b4'); // Highlight
+                grad.addColorStop(0.4, '#9ae6b4');
                 grad.addColorStop(1, '#48bb78');
 
                 ctx.fillStyle = grad;
@@ -944,124 +949,98 @@
                 ctx.fill();
                 
                 if (this.type === 'coin') {
-                    // Spin animation
                     const scale = Math.abs(Math.sin(this.frame * 0.5));
                     ctx.scale(scale, 1);
                     
-                    // Outer ring
                     ctx.fillStyle = '#f6e05e';
-                    ctx.beginPath(); 
-                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2); 
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
                     
-                    // Inner
                     ctx.fillStyle = '#d69e2e';
-                    ctx.beginPath(); 
-                    ctx.arc(0, 0, this.radius - 3, 0, Math.PI * 2); 
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius - 3, 0, Math.PI * 2); ctx.fill();
                     
-                    // Shine
                     ctx.fillStyle = '#fff';
                     ctx.globalAlpha = 0.6;
-                    ctx.beginPath();
-                    ctx.arc(-3, -3, 3, 0, Math.PI*2);
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(-3, -3, 3, 0, Math.PI*2); ctx.fill();
                     ctx.globalAlpha = 1;
                     
-                    ctx.fillStyle = '#fff'; 
-                    ctx.font = 'bold 14px Nunito'; 
-                    ctx.textAlign = 'center'; 
-                    ctx.textBaseline = 'middle'; 
-                    ctx.fillText('$', 0, 1);
+                    ctx.fillStyle = '#fff'; ctx.font = 'bold 14px Nunito'; 
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 0, 1);
                 } else {
                     const colors = { shield: '#4299e1', magnet: '#ecc94b', slowmo: '#9f7aea' };
                     const icons = { shield: '🛡️', magnet: '🧲', slowmo: '⏱️' };
                     
-                    // Glow effect
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = colors[this.type];
-                    
+                    ctx.shadowBlur = 15; ctx.shadowColor = colors[this.type];
                     ctx.fillStyle = colors[this.type];
-                    ctx.beginPath(); 
-                    ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2); 
-                    ctx.fill();
-                    
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2); ctx.fill();
                     ctx.shadowBlur = 0;
                     
-                    // Pulse ring
                     ctx.strokeStyle = colors[this.type];
-                    ctx.lineWidth = 2;
-                    ctx.globalAlpha = 0.5 + Math.sin(this.frame * 0.5) * 0.3;
-                    ctx.beginPath(); 
-                    ctx.arc(0, 0, this.radius + 6 + Math.sin(this.frame * 0.5) * 3, 0, Math.PI * 2); 
-                    ctx.stroke();
+                    ctx.lineWidth = 2; ctx.globalAlpha = 0.5 + Math.sin(this.frame * 0.5) * 0.3;
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius + 6 + Math.sin(this.frame * 0.5) * 3, 0, Math.PI * 2); ctx.stroke();
                     ctx.globalAlpha = 1;
                     
-                    ctx.fillStyle = '#fff'; 
-                    ctx.font = '14px Arial'; 
-                    ctx.textAlign = 'center'; 
-                    ctx.textBaseline = 'middle'; 
-                    ctx.fillText(icons[this.type], 0, 1);
+                    ctx.fillStyle = '#fff'; ctx.font = '14px Arial'; 
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(icons[this.type], 0, 1);
                 }
                 
-                // Magnet line
                 if (this.magneted) {
-                    ctx.strokeStyle = '#ecc94b';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([5, 5]);
-                    ctx.globalAlpha = 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(bird.x - this.x, bird.y - this.y);
-                    ctx.stroke();
+                    ctx.strokeStyle = '#ecc94b'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+                    ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(0, 0);
+                    ctx.lineTo(bird.x - this.x, bird.y - this.y); ctx.stroke();
                 }
                 
                 ctx.restore();
             }
         }
 
-        // ==================== BACKGROUND ====================
+        // ==================== DYNAMIC WEATHER BACKGROUND ====================
         function drawBackground() {
-            // Dynamic sky gradient berdasarkan score
             const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            if (score < 10) {
+            let grassTop, grassBottom, grassDark;
+
+            if (score < 20) {
+                // Siang Hari Cerah
                 skyGrad.addColorStop(0, '#63b3ed'); 
                 skyGrad.addColorStop(0.5, '#90cdf4'); 
                 skyGrad.addColorStop(1, '#bee3f8');
-            } else if (score < 30) {
-                skyGrad.addColorStop(0, '#4299e1'); 
-                skyGrad.addColorStop(0.5, '#63b3ed'); 
-                skyGrad.addColorStop(1, '#90cdf4');
+                grassTop = '#48bb78'; grassBottom = '#38a169'; grassDark = '#2f855a';
+            } else if (score < 40) {
+                // Sore Hari (Sunset)
+                skyGrad.addColorStop(0, '#ed8936'); 
+                skyGrad.addColorStop(0.5, '#f6ad55'); 
+                skyGrad.addColorStop(1, '#fbd38d');
+                grassTop = '#38a169'; grassBottom = '#276749'; grassDark = '#22543d';
             } else {
-                skyGrad.addColorStop(0, '#667eea'); 
-                skyGrad.addColorStop(0.5, '#764ba2'); 
-                skyGrad.addColorStop(1, '#9f7aea');
+                // Malam Hari
+                skyGrad.addColorStop(0, '#1a202c'); 
+                skyGrad.addColorStop(0.5, '#2d3748'); 
+                skyGrad.addColorStop(1, '#4a5568');
+                grassTop = '#276749'; grassBottom = '#1c4532'; grassDark = '#173627';
             }
             
             ctx.fillStyle = skyGrad; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Awan menyesuaikan opacity kalau malam
+            ctx.globalAlpha = (score >= 40) ? 0.3 : 1;
             clouds.forEach(cloud => cloud.draw(ctx));
+            ctx.globalAlpha = 1;
 
             const floorY = canvas.height - 80;
-            
-            // Grass gradient
             const grassGrad = ctx.createLinearGradient(0, floorY, 0, canvas.height);
-            grassGrad.addColorStop(0, '#48bb78');
-            grassGrad.addColorStop(1, '#38a169');
+            grassGrad.addColorStop(0, grassTop);
+            grassGrad.addColorStop(1, grassBottom);
             ctx.fillStyle = grassGrad; 
             ctx.fillRect(0, floorY, canvas.width, 80);
             
-            // Animated grass
-            ctx.fillStyle = '#2f855a';
+            ctx.fillStyle = grassDark;
             for (let x = 0; x < canvas.width + 50; x += 25) {
                 const drawX = x - (groundOffset % 25);
                 const h = 8 + Math.sin((x + frames) * 0.05) * 4;
                 ctx.fillRect(drawX, floorY - h/2, 12, h);
             }
             
-            // Top border
-            ctx.fillStyle = '#2f855a'; 
+            ctx.fillStyle = grassDark; 
             ctx.fillRect(0, floorY, canvas.width, 6);
         }
 
@@ -1081,8 +1060,8 @@
             combo = 0; 
             maxCombo = 0; 
             perfectPasses = 0; 
-            gameSpeed = 1.5; // Start slower
-            difficulty = 1; 
+            gameSpeed = 1.2; // Start awal lebih santai (diperbarui)
+            difficulty = 0.5; // Level kesusahan direndahkan (diperbarui)
             spawnTimer = 0; 
             frames = 0; 
             consecutiveCoins = 0;
@@ -1178,16 +1157,16 @@
                 clouds = clouds.filter(c => c.x > -100);
 
                 spawnTimer += (bird.powerups.slowmo ? 0.4 : 1);
-                const spawnRate = Math.max(90, 140 - (difficulty * 2));
+                // Menyesuaikan spanw rate dengan tingkat kesusahan
+                const spawnRate = Math.max(90, 160 - (difficulty * 15));
                 
                 if (spawnTimer > spawnRate) { 
                     spawnTimer = 0; 
                     let newPipe = new Pipe();
                     
-                    // FIX: Pastikan tidak overlap dengan pipa sebelumnya
                     if (pipes.length > 0) {
                         const lastPipe = pipes[pipes.length - 1];
-                        const minDistance = 250; // Jarak minimum antar pipa
+                        const minDistance = 220; 
                         if (newPipe.x - lastPipe.x < minDistance) {
                             newPipe.x = lastPipe.x + minDistance;
                         }
@@ -1196,12 +1175,9 @@
                     pipes.push(newPipe);
                     lastPipeX = newPipe.x;
 
-                    // Spawn items dengan probabilitas
                     if (Math.random() < 0.75) {
                         let itemType = 'coin';
                         let rand = Math.random();
-                        
-                        // Peluang power-up meningkat dengan score
                         const powerupChance = Math.min(0.05 + (score * 0.002), 0.15);
                         
                         if (rand < powerupChance) itemType = 'shield';      
@@ -1212,7 +1188,6 @@
                     }
                 }
                 
-                // UPDATE ITEMS
                 for (let i = items.length - 1; i >= 0; i--) {
                     let item = items[i];
                     item.update(currentSpeed);
@@ -1226,7 +1201,6 @@
                             coins++;
                             consecutiveCoins++;
                             
-                            // Streak bonus
                             if (consecutiveCoins >= 3) {
                                 const bonus = Math.min(consecutiveCoins * 5, 50);
                                 score += Math.floor(bonus / 10);
@@ -1248,12 +1222,10 @@
                     }
                 }
                 
-                // UPDATE PIPES
                 for (let i = pipes.length - 1; i >= 0; i--) {
                     const pipe = pipes[i]; 
                     pipe.update(currentSpeed);
                     
-                    // Collision detection dengan padding
                     const hitPadding = 4; 
                     const birdLeft = bird.x - bird.radius + hitPadding;
                     const birdRight = bird.x + bird.radius - hitPadding;
@@ -1275,43 +1247,44 @@
                         }
                     }
                     
-                    // Scoring
                     if (!pipe.scored && bird.x > pipe.x + pipe.w) {
                         pipe.scored = true; 
                         score++;
                         
-                        // Pulse animation
                         const scoreBox = document.getElementById('score-box');
                         scoreBox.classList.add('pulse');
                         setTimeout(() => scoreBox.classList.remove('pulse'), 200);
                         
-                        // Perfect pass
                         const centerGap = pipe.topHeight + (pipe.gap / 2);
                         const distFromCenter = Math.abs(bird.y - centerGap);
                         if (distFromCenter < 40) {
                             perfectPasses++;
-                            score += 2; // Bonus perfect
+                            score += 2; 
                             showFloatingText('PERFECT! +2', bird.x, bird.y - 60, '#48bb78');
                             spawnParticles(bird.x, bird.y, 15, 'sparkle', '#48bb78', 1.5);
-                            triggerShake(5);
                         }
                         
                         document.getElementById('score-display').textContent = score; 
                         sfx.score();
                         
-                        // Level up setiap 10
+                        // Level up bertahap
                         if (score > 0 && score % 10 === 0) {
-                            if (gameSpeed < 4) gameSpeed += 0.3; // Naik lebih pelan
-                            difficulty += 0.3;
+                            if (gameSpeed < 3.8) gameSpeed += 0.2; // Speed naik dikit demi sedikit
+                            difficulty += 0.2; // Kesulitan pipa pelan pelan naik
                             
                             sfx.levelUp();
                             let banner = document.getElementById('combo-banner');
-                            banner.textContent = `LEVEL ${Math.floor(score/10)}! 🚀`;
+                            
+                            // Pesan khusus jika cuaca/event baru dimulai
+                            if (score === 20) banner.textContent = `SUNSET ARRIVES! 🌅`;
+                            else if (score === 40) banner.textContent = `NIGHT FALLS! 🌙`;
+                            else if (score === 50) banner.textContent = `MOVING PIPES! ⚙️`;
+                            else banner.textContent = `LEVEL UP! 🚀`;
+                            
                             banner.classList.add('combo-show');
                             setTimeout(() => banner.classList.remove('combo-show'), 2000);
                             
                             showFloatingText('SPEED UP!', canvas.width/2, 120, '#ff6b6b');
-                            triggerShake(8);
                         }
                     }
                     if (pipe.x + pipe.w < -100) pipes.splice(i, 1);
@@ -1329,14 +1302,26 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
             
-            // Draw items behind pipes
             items.forEach(item => item.draw(ctx));
-            
             pipes.forEach(pipe => pipe.draw(ctx));
             
             if (gameState !== 'START') bird.draw(ctx);
-            
             particles.forEach(p => p.draw(ctx));
+
+            // ==================== EFEK MALAM (FLASHLIGHT) ====================
+            if (score >= 40 && gameState !== 'START') {
+                ctx.save();
+                const opacity = Math.min(0.95, 0.6 + (score - 40) * 0.015); // Makin gelap
+                const radius = Math.max(80, 250 - (score - 40) * 1.5); // Senter makin mengecil
+                
+                const gradient = ctx.createRadialGradient(bird.x, bird.y, radius * 0.3, bird.x, bird.y, radius);
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(1, `rgba(0, 0, 0, ${opacity})`);
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+            }
 
             if (gameState === 'READY') {
                 ctx.save();
@@ -1347,14 +1332,12 @@
                 ctx.shadowBlur = 20;
                 ctx.fillText('TAP UNTUK TERBANG', canvas.width / 2, canvas.height / 2 + 100);
                 
-                // Animated finger
                 const fingerY = canvas.height / 2 + 140 + Math.sin(frames * 0.1) * 5;
                 ctx.font = '900 32px Nunito';
                 ctx.fillText('👆', canvas.width / 2, fingerY);
                 ctx.restore();
             }
             
-            // Streak counter
             if (consecutiveCoins > 1 && gameState === 'PLAYING') {
                 ctx.save();
                 ctx.fillStyle = consecutiveCoins >= 5 ? `hsl(${frames * 5 % 360}, 100%, 60%)` : '#ffd93d';
